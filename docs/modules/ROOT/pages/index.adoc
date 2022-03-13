@@ -1,0 +1,19 @@
+= Quarkus GitHub Action
+
+include::./includes/attributes.adoc[]
+
+This extensions simplifies the development of GitHub Actions with Quarkus.
+
+== Installation
+
+If you want to use this extension, you need to add the `io.quarkiverse.githubaction:quarkus-github-action` extension first.
+In your `pom.xml` file, add:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.githubaction</groupId>
+    <artifactId>quarkus-github-action</artifactId>
+    <version>{quarkus-github-action-version}</version>
+</dependency>
+----

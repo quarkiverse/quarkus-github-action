@@ -1,0 +1,5 @@
+name: quarkus-github-action
+title: Quarkus GitHub Action
+version: dev
+nav:
+  - modules/ROOT/nav.adoc
