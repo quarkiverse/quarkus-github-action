@@ -29,6 +29,10 @@
             <artifactId>quarkus-smallrye-graphql-client-deployment</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-vertx-deployment</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.quarkiverse.githubaction</groupId>
             <artifactId>quarkus-github-action</artifactId>
         </dependency>
