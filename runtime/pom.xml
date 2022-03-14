@@ -29,6 +29,10 @@
             <artifactId>quarkus-smallrye-graphql-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-vertx</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.quarkiverse.githubapp</groupId>
             <artifactId>quarkus-github-app-events</artifactId>
         </dependency>
