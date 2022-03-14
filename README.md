@@ -5,27 +5,73 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=for-the-badge)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-## Welcome to Quarkiverse!
+<p align="center"><img src="https://design.jboss.org/quarkus/bot/final/images/quarkusbot_full.svg" width="128" height="128" /></p>
 
-Congratulations and thank you for creating a new Quarkus extension project in Quarkiverse!
+**Develop your GitHub Actions in Java with Quarkus**
 
-Feel free to replace this content with the proper description of your new project and necessary instructions how to use and contribute to it.
+> _Interested in GitHub Apps? Have a look at the [Quarkus GitHub App extension](https://github.com/quarkiverse/quarkus-github-app/)._
 
-You can find the basic info, Quarkiverse policies and conventions in [the Quarkiverse wiki](https://github.com/quarkiverse/quarkiverse/wiki).
+Quarkus GitHub Action is a [Quarkus](https://quarkus.io) extension
+that allows to create GitHub Actions in Java with very little boilerplate.
 
-In case you are creating a Quarkus extension project for the first time, please follow [Building My First Extension](https://quarkus.io/guides/building-my-first-extension) guide.
+And yes, it supports generating native executables with GraalVM or Mandrel.
 
-Other useful articles related to Quarkus extension development can be found under the [Writing Extensions](https://quarkus.io/guides/#writing-extensions) guide category on the [Quarkus.io](http://quarkus.io) website.
+Your GitHub Action will look like:
 
-Thanks again, good luck and have fun!
+```java
+class MyGitHubAction {
+
+  @Action
+	void doSomething() {
+		// do something useful here
+	}
+}
+```
+
+Or you can also leverage the GitHub REST API (GraphQL is also supported), get the execution context, get the inputs, produce outputs... with something a bit more involved:
+
+```java
+class MyGitHubAction {
+
+  @Action
+	void onIssueOpened(@Issue.Opened GHEventPayload.Issue issuePayload, Context context, Inputs inputs, Outputs outputs) throws IOException {
+		issuePayload.getIssue().comment("Hello from MyGitHubAction");
+
+    outputs.add("output-key", "the value");
+	}
+}
+```
+
+Quarkus GitHub Action will automatically inject all these fully initialized instances in the `@Action` methods for you.
+
+Focus on your business logic and don't bother about the ceremony.
 
 ## Documentation
 
-The documentation for this extension should be maintained as part of this repository and it is stored in the `docs/` directory. 
+To get you started (and more!), please refer to [the extensive documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html).
 
-The layout should follow the [Antora's Standard File and Directory Set](https://docs.antora.org/antora/2.3/standard-directories/).
+Anything unclear or missing in the documentation? Please [open an issue](https://github.com/quarkiverse/quarkus-github-action/issues/new).
 
-Once the docs are ready to be published, please open a PR including this repository in the [Quarkiverse Docs Antora playbook](https://github.com/quarkiverse/quarkiverse-docs/blob/main/antora-playbook.yml#L7). See an example [here](https://github.com/quarkiverse/quarkiverse-docs/pull/1).
+## How?
+
+The Quarkus GitHub Action extension uses the [Hub4j GitHub API](https://github.com/hub4j/github-api)
+to parse the webhook payloads and handle the [GitHub REST API](https://docs.github.com/en/rest) calls.
+
+It can also execute GraphQL queries towards the [GitHub GraphQL API](https://docs.github.com/en/graphql) via the SmallRye GraphQL Client.
+
+The rest of the extension is Quarkus magic - mostly code generation with [Gizmo](https://github.com/quarkusio/gizmo/) -
+to get everything wired.
+
+## Status
+
+This extension is considered tech preview but should be considered stable very soon.
+
+It relies on the same principles as the [Quarkus GitHub App extension](https://github.com/quarkiverse/quarkus-github-app/), which has been stable for a while.
+
+## License
+
+This project is licensed under the [Apache License Version 2.0](./LICENSE.txt).
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -35,7 +81,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://lesincroyableslivres.fr/"><img src="https://avatars.githubusercontent.com/u/1279749?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Guillaume Smet</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-github-action/commits?author=gsmet" title="Code">💻</a> <a href="#maintenance-gsmet" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="https://github.com/gsmet"><img src="https://avatars.githubusercontent.com/u/1279749?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Guillaume Smet</b></sub></a><br /><a href="https://github.com/quarkiverse/quarkus-github-action/commits?author=gsmet" title="Code">💻</a> <a href="#maintenance-gsmet" title="Maintenance">🚧</a></td>
   </tr>
 </table>
 
