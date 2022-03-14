@@ -22,9 +22,9 @@ Your GitHub Action will look like:
 class MyGitHubAction {
 
   @Action
-	void doSomething() {
-		// do something useful here
-	}
+  void doSomething() {
+    // do something useful here
+  }
 }
 ```
 
@@ -34,11 +34,11 @@ Or you can also leverage the GitHub REST API (GraphQL is also supported), get th
 class MyGitHubAction {
 
   @Action
-	void onIssueOpened(@Issue.Opened GHEventPayload.Issue issuePayload, Context context, Inputs inputs, Outputs outputs) throws IOException {
-		issuePayload.getIssue().comment("Hello from MyGitHubAction");
+  void onIssueOpened(@Issue.Opened GHEventPayload.Issue issuePayload, Context context, Inputs inputs, Outputs outputs) throws IOException {
+    issuePayload.getIssue().comment("Hello from MyGitHubAction");
 
     outputs.add("output-key", "the value");
-	}
+  }
 }
 ```
 
