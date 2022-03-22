@@ -17,7 +17,7 @@ public class OutputsImpl implements Outputs {
     }
 
     @Override
-    public void add(String key, String value) {
+    public void produce(String key, String value) {
         if (outputs.containsKey(key)) {
             throw new IllegalArgumentException(key + " is already defined as an output with value " + outputs.get(key));
         }

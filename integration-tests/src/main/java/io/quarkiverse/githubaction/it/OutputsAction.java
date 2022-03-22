@@ -11,6 +11,6 @@ public class OutputsAction {
 
     @Action(ACTION_NAME)
     void test(Outputs outputs) {
-        outputs.add(OUTPUT_KEY, OUTPUT_VALUE);
+        outputs.produce(OUTPUT_KEY, OUTPUT_VALUE);
     }
 }

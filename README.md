@@ -37,7 +37,7 @@ class MyGitHubAction {
   void onIssueOpened(@Issue.Opened GHEventPayload.Issue issuePayload, Context context, Inputs inputs, Outputs outputs) throws IOException {
     issuePayload.getIssue().comment("Hello from MyGitHubAction");
 
-    outputs.add("output-key", "the value");
+    outputs.produce("output-key", "the value");
   }
 }
 ```
