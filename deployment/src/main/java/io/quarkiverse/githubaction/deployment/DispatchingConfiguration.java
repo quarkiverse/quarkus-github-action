@@ -86,8 +86,9 @@ class DispatchingConfiguration {
             return literals;
         }
 
-        ActionDispatchingConfiguration addEventAnnotation(String action, AnnotationInstance annotationInstance) {
-            eventAnnotations.put(action, new EventAnnotation(annotationInstance.name(), annotationInstance.values()));
+        ActionDispatchingConfiguration addEventAnnotation(String action, AnnotationInstance annotationInstance,
+                List<AnnotationValue> annotationValues) {
+            eventAnnotations.put(action, new EventAnnotation(annotationInstance.name(), annotationValues));
             return this;
         }
     }
@@ -122,7 +123,7 @@ class DispatchingConfiguration {
                 return valuesLengthCompare;
             }
             for (int i = 0; i < values.size(); i++) {
-                // we only support string for now, we can adjust laster
+                // we only support string for now, we can adjust later
                 int valueCompare = values.get(i).asString().compareTo(other.values.get(i).asString());
                 if (valueCompare != 0) {
                     return valueCompare;
