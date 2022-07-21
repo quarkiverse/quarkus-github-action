@@ -5,13 +5,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.quarkiverse.githubaction.Action;
 import io.quarkiverse.githubaction.Inputs;
 
 class InputsImpl implements Inputs {
@@ -53,39 +51,5 @@ class InputsImpl implements Inputs {
     @Override
     public Map<String, String> all() {
         return inputs;
-    }
-
-    @Override
-    public String get(String key) {
-        return inputs.get(key);
-    }
-
-    @Override
-    public String getRequired(String key) {
-        if (!inputs.containsKey(key)) {
-            throw new IllegalArgumentException("Input " + key + " is required and has not been provided");
-        }
-
-        return get(key);
-    }
-
-    @Override
-    public String getOrDefault(String key, String defaultValue) {
-        if (!inputs.containsKey(key)) {
-            return defaultValue;
-        }
-
-        return get(key);
-    }
-
-    @Override
-    public String getAction() {
-        String actionInput = inputs.get(ACTION);
-        return actionInput != null ? actionInput : Action.UNNAMED;
-    }
-
-    @Override
-    public Optional<String> getGitHubToken() {
-        return Optional.ofNullable(inputs.get(GITHUB_TOKEN));
     }
 }
