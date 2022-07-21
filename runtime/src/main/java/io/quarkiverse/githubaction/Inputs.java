@@ -1,5 +1,6 @@
 package io.quarkiverse.githubaction;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -7,9 +8,34 @@ import java.util.Optional;
  */
 public interface Inputs {
 
-    String get(String key);
+    String ACTION = "action";
+    String GITHUB_TOKEN = "github-token";
 
-    String getAction();
+    Map<String, String> all();
 
-    Optional<String> getGitHubToken();
+    default String get(String key) {
+        return all().get(key);
+    }
+
+    default String getRequired(String key) {
+        String value = all().get(key);
+
+        if (value == null) {
+            throw new IllegalArgumentException("Input " + key + " is required and has not been provided");
+        }
+
+        return get(key);
+    }
+
+    default String getOrDefault(String key, String defaultValue) {
+        return all().getOrDefault(key, defaultValue);
+    }
+
+    default String getAction() {
+        return all().getOrDefault(ACTION, Action.UNNAMED);
+    }
+
+    default Optional<String> getGitHubToken() {
+        return Optional.ofNullable(all().get(GITHUB_TOKEN));
+    }
 }

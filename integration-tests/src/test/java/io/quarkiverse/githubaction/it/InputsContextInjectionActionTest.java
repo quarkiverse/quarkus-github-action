@@ -2,6 +2,7 @@ package io.quarkiverse.githubaction.it;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.inject.Alternative;
@@ -47,12 +48,7 @@ public class InputsContextInjectionActionTest {
 
         @Override
         public Inputs createInputs() {
-            return new DefaultTestInputs() {
-                @Override
-                public String getAction() {
-                    return InputsContextInjectionAction.ACTION_NAME;
-                }
-            };
+            return new DefaultTestInputs(Map.of(Inputs.ACTION, InputsContextInjectionAction.ACTION_NAME));
         }
     }
 
