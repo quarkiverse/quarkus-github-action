@@ -9,7 +9,7 @@ import java.util.Optional;
 import io.quarkiverse.githubaction.Action;
 import io.quarkiverse.githubaction.Inputs;
 
-public class InputsImpl implements Inputs {
+class InputsImpl implements Inputs {
 
     private static final String INPUT_PREFIX = "INPUT_";
     private static final String ACTION = "action";
@@ -17,7 +17,7 @@ public class InputsImpl implements Inputs {
 
     private final Map<String, String> inputs = new HashMap<>();
 
-    public InputsImpl() {
+    InputsImpl() {
         for (Entry<String, String> envEntry : System.getenv().entrySet()) {
             if (!envEntry.getKey().startsWith(INPUT_PREFIX)) {
                 continue;
