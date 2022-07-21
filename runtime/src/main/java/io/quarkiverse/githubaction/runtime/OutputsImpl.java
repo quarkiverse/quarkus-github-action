@@ -9,11 +9,11 @@ import io.quarkiverse.githubaction.Outputs;
 /**
  * See https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-output-parameter
  */
-public class OutputsImpl implements Outputs {
+class OutputsImpl implements Outputs {
 
     private final Map<String, String> outputs = new LinkedHashMap<>();
 
-    public OutputsImpl() {
+    OutputsImpl() {
     }
 
     @Override

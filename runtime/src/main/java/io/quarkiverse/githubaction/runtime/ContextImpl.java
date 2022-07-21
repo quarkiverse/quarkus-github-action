@@ -2,7 +2,7 @@ package io.quarkiverse.githubaction.runtime;
 
 import io.quarkiverse.githubaction.Context;
 
-public class ContextImpl implements Context {
+class ContextImpl implements Context {
 
     private final String home;
     private final String gitHubJob;
@@ -42,7 +42,7 @@ public class ContextImpl implements Context {
     private final String actionsRuntimeToken;
     private final String actionsCacheUrl;
 
-    public ContextImpl() {
+    ContextImpl() {
         home = System.getenv("HOME");
         gitHubJob = System.getenv("GITHUB_JOB");
         gitHubRef = System.getenv("GITHUB_REF");

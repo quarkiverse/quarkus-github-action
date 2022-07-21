@@ -33,7 +33,7 @@ public class GitHubEvent {
     private volatile GitHub gitHubClient;
     private volatile DynamicGraphQLClient gitHubGraphQLClient;
 
-    public GitHubEvent(String name, Context context, String eventAction,
+    GitHubEvent(String name, Context context, String eventAction,
             Inputs inputs, Outputs outputs,
             Class<? extends GHEventPayload> payloadType) {
         this.name = name;
