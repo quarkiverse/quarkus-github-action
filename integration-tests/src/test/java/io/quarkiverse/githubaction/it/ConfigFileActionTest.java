@@ -2,6 +2,7 @@ package io.quarkiverse.githubaction.it;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -47,12 +48,7 @@ public class ConfigFileActionTest {
 
         @Override
         public Inputs createInputs() {
-            return new DefaultTestInputs() {
-                @Override
-                public String getAction() {
-                    return ConfigFileAction.ACTION_NAME;
-                }
-            };
+            return new DefaultTestInputs(Map.of(Inputs.ACTION, ConfigFileAction.ACTION_NAME));
         }
     }
 
