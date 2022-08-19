@@ -35,12 +35,12 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
-    public String getGitHubRunId() {
+    public Long getGitHubRunId() {
         return null;
     }
 
     @Override
-    public String getGitHubRunNumber() {
+    public Long getGitHubRunNumber() {
         return null;
     }
 

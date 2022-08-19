@@ -113,13 +113,13 @@ class ContextImpl implements Context {
     }
 
     @Override
-    public String getGitHubRunId() {
-        return gitHubRunId;
+    public Long getGitHubRunId() {
+        return gitHubRunId != null ? Long.valueOf(gitHubRunId) : null;
     }
 
     @Override
-    public String getGitHubRunNumber() {
-        return gitHubRunNumber;
+    public Long getGitHubRunNumber() {
+        return gitHubRunNumber != null ? Long.valueOf(gitHubRunNumber) : null;
     }
 
     @Override
