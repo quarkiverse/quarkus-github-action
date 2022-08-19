@@ -13,12 +13,12 @@ public interface Inputs {
 
     Map<String, String> all();
 
-    default String get(String key) {
-        return all().get(key);
+    default Optional<String> get(String key) {
+        return Optional.ofNullable(all().get(key));
     }
 
     default String getRequired(String key) {
-        String value = get(key);
+        String value = all().get(key);
 
         if (value == null) {
             throw new IllegalArgumentException("Input " + key + " is required and has not been provided");
@@ -36,6 +36,6 @@ public interface Inputs {
     }
 
     default Optional<String> getGitHubToken() {
-        return Optional.ofNullable(get(GITHUB_TOKEN));
+        return get(GITHUB_TOKEN);
     }
 }
