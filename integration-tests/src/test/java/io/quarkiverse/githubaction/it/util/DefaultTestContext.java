@@ -45,12 +45,12 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
-    public String getGitHubRetentionDays() {
+    public Integer getGitHubRetentionDays() {
         return null;
     }
 
     @Override
-    public String getGitHubRunAttempt() {
+    public Integer getGitHubRunAttempt() {
         return null;
     }
 

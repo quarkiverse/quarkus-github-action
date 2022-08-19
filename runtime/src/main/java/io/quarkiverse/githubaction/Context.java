@@ -23,9 +23,9 @@ public interface Context {
 
     Long getGitHubRunNumber();
 
-    String getGitHubRetentionDays();
+    Integer getGitHubRetentionDays();
 
-    String getGitHubRunAttempt();
+    Integer getGitHubRunAttempt();
 
     String getGitHubActor();
 

@@ -123,13 +123,13 @@ class ContextImpl implements Context {
     }
 
     @Override
-    public String getGitHubRetentionDays() {
-        return gitHubRetentionDays;
+    public Integer getGitHubRetentionDays() {
+        return gitHubRetentionDays != null ? Integer.valueOf(gitHubRetentionDays) : null;
     }
 
     @Override
-    public String getGitHubRunAttempt() {
-        return gitHubRunAttempt;
+    public Integer getGitHubRunAttempt() {
+        return gitHubRunAttempt != null ? Integer.valueOf(gitHubRunAttempt) : null;
     }
 
     @Override
