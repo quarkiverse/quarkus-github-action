@@ -2,6 +2,8 @@ package io.quarkiverse.githubaction;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 /**
  * Inputs provided to the action.
@@ -27,8 +29,34 @@ public interface Inputs {
         return value;
     }
 
-    default String getOrDefault(String key, String defaultValue) {
-        return all().getOrDefault(key, defaultValue);
+    default Optional<Boolean> getBoolean(String key) {
+        String value = all().get(key);
+
+        if (value == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(Boolean.parseBoolean(value));
+    }
+
+    default OptionalLong getLong(String key) {
+        String value = all().get(key);
+
+        if (value == null) {
+            return OptionalLong.empty();
+        }
+
+        return OptionalLong.of(Long.valueOf(value));
+    }
+
+    default OptionalInt getInteger(String key) {
+        String value = all().get(key);
+
+        if (value == null) {
+            return OptionalInt.empty();
+        }
+
+        return OptionalInt.of(Integer.valueOf(value));
     }
 
     default String getAction() {
