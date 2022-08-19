@@ -19,13 +19,13 @@ public interface Context {
 
     String getGitHubRepositoryOwner();
 
-    String getGitHubRunId();
+    Long getGitHubRunId();
 
-    String getGitHubRunNumber();
+    Long getGitHubRunNumber();
 
-    String getGitHubRetentionDays();
+    Integer getGitHubRetentionDays();
 
-    String getGitHubRunAttempt();
+    Integer getGitHubRunAttempt();
 
     String getGitHubActor();
 
