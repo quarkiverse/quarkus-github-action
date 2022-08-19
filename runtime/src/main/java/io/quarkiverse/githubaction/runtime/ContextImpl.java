@@ -114,22 +114,22 @@ class ContextImpl implements Context {
 
     @Override
     public Long getGitHubRunId() {
-        return gitHubRunId != null ? Long.valueOf(gitHubRunId) : null;
+        return gitHubRunId != null && !gitHubRunId.isBlank() ? Long.valueOf(gitHubRunId) : null;
     }
 
     @Override
     public Long getGitHubRunNumber() {
-        return gitHubRunNumber != null ? Long.valueOf(gitHubRunNumber) : null;
+        return gitHubRunNumber != null && !gitHubRunNumber.isBlank() ? Long.valueOf(gitHubRunNumber) : null;
     }
 
     @Override
     public Integer getGitHubRetentionDays() {
-        return gitHubRetentionDays != null ? Integer.valueOf(gitHubRetentionDays) : null;
+        return gitHubRetentionDays != null && !gitHubRetentionDays.isBlank() ? Integer.valueOf(gitHubRetentionDays) : null;
     }
 
     @Override
     public Integer getGitHubRunAttempt() {
-        return gitHubRunAttempt != null ? Integer.valueOf(gitHubRunAttempt) : null;
+        return gitHubRunAttempt != null && !gitHubRunAttempt.isBlank() ? Integer.valueOf(gitHubRunAttempt) : null;
     }
 
     @Override
