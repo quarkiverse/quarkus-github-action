@@ -1,9 +1,19 @@
+---
+artifact: ${project.groupId}:${project.artifactId}:${project.version}
 name: GitHub Action
-#description: Github Action ...
 metadata:
-#  keywords:
-#    - github-action
-#  guide: ...
-#  categories:
-#    - "miscellaneous"
-#  status: "preview"
+  keywords:
+    - github-action
+    - github
+    - actions
+    - automation
+    - ci
+  guide: https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html
+  categories:
+    - "business-automation"
+  status: "stable"
+  codestart:
+    name: "github-action"
+    languages:
+      - "java"
+    artifact: "io.quarkiverse.githubaction:quarkus-github-action:codestarts:jar:${project.version}"

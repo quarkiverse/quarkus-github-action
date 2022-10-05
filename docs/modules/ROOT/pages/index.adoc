@@ -17,3 +17,5 @@ In your `pom.xml` file, add:
     <version>{quarkus-github-action-version}</version>
 </dependency>
 ----
+
+#quarkus.log.category."io.quarkiverse.githubaction".level=DEBUG
