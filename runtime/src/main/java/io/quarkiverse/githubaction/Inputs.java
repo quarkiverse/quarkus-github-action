@@ -23,7 +23,7 @@ public interface Inputs {
         String value = all().get(key);
 
         if (value == null) {
-            throw new IllegalArgumentException("Input " + key + " is required and has not been provided");
+            throw new IllegalStateException("Input " + key + " is required and has not been provided");
         }
 
         return value;
