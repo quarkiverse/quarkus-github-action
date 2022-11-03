@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import io.quarkiverse.githubaction.Commands;
 import io.quarkiverse.githubaction.Outputs;
 
 /**
@@ -25,15 +26,9 @@ class OutputsImpl implements Outputs {
         outputs.put(key, value);
     }
 
-    public void produce() {
-        if (outputs.isEmpty()) {
-            return;
-        }
-
-        // make sure the set-output commands will be on a new line
-        System.out.println();
+    public void produce(Commands commands) {
         for (Entry<String, String> outputEntry : outputs.entrySet()) {
-            System.out.println("::set-output name=" + outputEntry.getKey() + "::" + outputEntry.getValue());
+            commands.setOutput(outputEntry.getKey(), outputEntry.getValue());
         }
     }
 }

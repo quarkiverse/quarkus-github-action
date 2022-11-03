@@ -13,24 +13,23 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import io.quarkiverse.githubaction.Commands;
+import io.quarkiverse.githubaction.runtime.github.EnvFiles;
 
 /**
  * See https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions
  */
 public class CommandsImpl implements Commands {
 
-    private static final String GITHUB_PATH = "GITHUB_PATH";
-    private static final String GITHUB_ENV = "GITHUB_ENV";
-    private static final String GITHUB_STEP_SUMMARY = "GITHUB_STEP_SUMMARY";
-
+    private Map<String, String> env;
     private String currentStopCommandsMarker;
 
-    CommandsImpl() {
+    public CommandsImpl(Map<String, String> env) {
+        this.env = env;
     }
 
     @Override
     public void setOutput(String name, String value) {
-        command("::set-output name=" + name + "::" + value);
+        appendEnvFile(EnvFiles.GITHUB_OUTPUT, name + "=" + value);
     }
 
     @Override
@@ -119,33 +118,33 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void saveState(String name, String value) {
-        command("::save-state name=" + name + "::" + value);
+        appendEnvFile(EnvFiles.GITHUB_STATE, name + "=" + value);
     }
 
     @Override
     public void environmentVariable(String name, String value) {
         if (!value.contains("\n")) {
-            writeEnvFile(GITHUB_ENV, name + "=" + value, StandardOpenOption.APPEND);
+            appendEnvFile(EnvFiles.GITHUB_ENV, name + "=" + value);
         } else {
-            writeEnvFile(GITHUB_ENV, name + "<<EOF" + System.lineSeparator() + value + System.lineSeparator() + "EOF",
-                    StandardOpenOption.APPEND);
+            appendEnvFile(EnvFiles.GITHUB_ENV,
+                    name + "<<EOF" + System.lineSeparator() + value + System.lineSeparator() + "EOF");
         }
     }
 
     @Override
     public void jobSummary(String markdownContent) {
-        writeEnvFile(GITHUB_STEP_SUMMARY, markdownContent);
+        writeEnvFile(EnvFiles.GITHUB_STEP_SUMMARY, markdownContent);
     }
 
     @Override
     public void appendJobSummary(String markdownContent) {
-        writeEnvFile(GITHUB_STEP_SUMMARY, markdownContent, StandardOpenOption.APPEND);
+        appendEnvFile(EnvFiles.GITHUB_STEP_SUMMARY, markdownContent);
     }
 
     @Override
     public void removeJobSummary() {
         try {
-            Files.deleteIfExists(getEnvFilePath(GITHUB_STEP_SUMMARY));
+            Files.deleteIfExists(getEnvFilePath(EnvFiles.GITHUB_STEP_SUMMARY));
         } catch (IOException e) {
             throw new IllegalStateException("Unable to delete job summary", e);
         }
@@ -153,7 +152,7 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void systemPath(String path) {
-        writeEnvFile(GITHUB_PATH, path, StandardOpenOption.APPEND);
+        appendEnvFile(EnvFiles.GITHUB_PATH, path);
     }
 
     private void message(String level, String message, String title, String file, Integer line, Integer endLine, Integer col,
@@ -194,18 +193,22 @@ public class CommandsImpl implements Commands {
         System.out.println(command);
     }
 
+    private void appendEnvFile(String fileName, String content) {
+        writeEnvFile(fileName, content, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    }
+
     private void writeEnvFile(String fileName, String content, OpenOption... openOptions) {
         Path path = getEnvFilePath(fileName);
 
         try {
-            Files.writeString(path, System.lineSeparator() + content, openOptions);
+            Files.writeString(path, content + System.lineSeparator(), openOptions);
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to write content to file " + fileName + " at path " + path, e);
         }
     }
 
     private Path getEnvFilePath(String fileName) {
-        String envFileName = System.getenv(fileName);
+        String envFileName = env.get(fileName);
 
         if (envFileName == null || envFileName.isBlank()) {
             throw new IllegalStateException("No path defined for environment file " + fileName);
