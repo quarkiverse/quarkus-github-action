@@ -8,6 +8,8 @@ import org.jboss.logging.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.quarkiverse.githubaction.Commands;
+import io.quarkiverse.githubaction.CommandsInitializer;
 import io.quarkiverse.githubaction.Context;
 import io.quarkiverse.githubaction.ContextInitializer;
 import io.quarkiverse.githubaction.Inputs;
@@ -28,6 +30,9 @@ public class ActionMain implements QuarkusApplication {
     InputsInitializer inputsInitializer;
 
     @Inject
+    CommandsInitializer commandsInitializer;
+
+    @Inject
     PayloadTypeResolver payloadTypeResolver;
 
     @Inject
@@ -42,7 +47,7 @@ public class ActionMain implements QuarkusApplication {
             Context context = contextInitializer.createContext();
             Inputs inputs = inputsInitializer.createInputs();
             OutputsImpl outputs = new OutputsImpl();
-            CommandsImpl commands = new CommandsImpl();
+            Commands commands = commandsInitializer.createCommands();
 
             GitHubEvent gitHubEvent = new GitHubEvent(inputs.getAction(), context,
                     getEventAction(context),
@@ -51,7 +56,7 @@ public class ActionMain implements QuarkusApplication {
 
             gitHubEventHandler.handle(gitHubEvent);
 
-            outputs.produce();
+            outputs.produce(commands);
 
             return 0;
         } catch (Exception e) {
