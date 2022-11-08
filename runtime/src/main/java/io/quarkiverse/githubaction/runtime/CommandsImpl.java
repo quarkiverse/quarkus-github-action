@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.jboss.logging.Logger;
+
 import io.quarkiverse.githubaction.Commands;
 import io.quarkiverse.githubaction.runtime.github.EnvFiles;
 
@@ -19,6 +21,8 @@ import io.quarkiverse.githubaction.runtime.github.EnvFiles;
  * See https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions
  */
 public class CommandsImpl implements Commands {
+
+    private static final Logger LOG = Logger.getLogger(CommandsImpl.class);
 
     private Map<String, String> env;
     private String currentStopCommandsMarker;
@@ -202,6 +206,8 @@ public class CommandsImpl implements Commands {
 
         try {
             Files.writeString(path, content + System.lineSeparator(), openOptions);
+
+            LOG.debugf("Wrote %s in environment file %s", content, fileName);
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to write content to file " + fileName + " at path " + path, e);
         }
