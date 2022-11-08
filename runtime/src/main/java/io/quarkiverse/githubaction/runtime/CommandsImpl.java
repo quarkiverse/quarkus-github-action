@@ -207,7 +207,7 @@ public class CommandsImpl implements Commands {
         try {
             Files.writeString(path, content + System.lineSeparator(), openOptions);
 
-            LOG.debugf("Wrote %s in environment file %s", content, fileName);
+            LOG.debugf("Wrote %s in environment file %s", content, path);
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to write content to file " + fileName + " at path " + path, e);
         }
