@@ -34,6 +34,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
 
       - name: Checkout repo
         uses: actions/checkout@v3
