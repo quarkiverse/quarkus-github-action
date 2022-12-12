@@ -1,0 +1,21 @@
+= Push to production
+
+include::./includes/attributes.adoc[]
+
+The Maven project created by the extension contains all the necessary GitHub Actions workflows to push your GitHub Action to production.
+
+The versioning model used for GitHub Action is a bit hard to map to the Maven versioning model.
+However, it is possible to come up with a reasonable solution that allows you to have a `main` version and also more stable releases.
+
+We recommend to keep the `main` version as `999-SNAPSHOT`, a workflow will publish it to the Maven repository to the GitHub repository.
+This will be your rolling `main` version.
+
+If you want to maintain a stable version, follow these instructions:
+
+- create a Git branch locally, for instance `v1`
+- adjust the version in the POM, for instance with `mvn versions:set -DnewVersion=1.0.2-SNAPSHOT -DgenerateBackupPoms=false`
+- adjust the version of the jar in the `action.yml`
+- commit your version adjustments
+- push your branch to the GitHub repository
+- wait for GitHub Actions to deploy the new version to the Maven repository
+- you can then reference your action with `my/action-github-repository@v1`

@@ -7,7 +7,7 @@
         <version>999-SNAPSHOT</version>
     </parent>
     <artifactId>quarkus-github-action</artifactId>
-    <name>Quarkus - GitHub Action - Runtime</name>
+    <name>Quarkus GitHub Action - Runtime</name>
     <description>Develop GitHub Actions in Java with Quarkus</description>
     <dependencies>
         <dependency>

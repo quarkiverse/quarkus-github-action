@@ -1,16 +1,15 @@
 {#if project.name}
 # {project.name}
 {#else}
-# {project.artifact}
+# {project.artifact-id}
 {/if}
-
 {#if project.description}
-> {project.description}
 
+> {project.description}
 {/if}
 
-This repository contains a GitHub Action powered by https://github.com/quarkiverse/quarkus-github-action[Quarkus GitHub Action].
+This repository contains a GitHub Action powered by [Quarkus GitHub Action](https://github.com/quarkiverse/quarkus-github-action).
 
-When pushing to the `main` branch, the GitHub Action artifact will automatically be published to the repository's Maven repository hosted on GitHub.
+When pushing to the `main` branch, the GitHub Action artifact is automatically published to the Maven repository of this GitHub repository.
 
-The `action.yml` file runs this published artifact using JBang when the action is executed.
+The `action.yml` descriptor instructs GitHub Actions to run this published artifact using JBang when the action is executed.

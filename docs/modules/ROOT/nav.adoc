@@ -1,1 +1,5 @@
-* xref:index.adoc[Quarkus - Github Action]
+* xref:index.adoc[Introduction]
+* xref:create-github-action.adoc[Create your first GitHub Action]
+* xref:developer-reference.adoc[Developer reference]
+* xref:testing.adoc[Testing]
+* xref:push-to-production.adoc[Push to production]

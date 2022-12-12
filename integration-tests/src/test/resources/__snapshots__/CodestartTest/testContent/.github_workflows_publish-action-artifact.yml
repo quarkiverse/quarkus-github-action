@@ -3,6 +3,8 @@ name: Publish action artifact to GitHub project's Maven repository
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - 'dependabot/**'
 
 jobs:
   build-and-push-action:

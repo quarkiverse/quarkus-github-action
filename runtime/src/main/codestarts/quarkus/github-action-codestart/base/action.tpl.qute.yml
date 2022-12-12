@@ -7,9 +7,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: curl -Ls https://sh.jbang.dev | bash -s - app setup
+    - id: install-jbang
+      run: curl -Ls https://sh.jbang.dev | bash -s - app setup
       shell: bash
-    - run: ~/.jbang/bin/jbang --repos 'github=https://maven.pkg.github.com/{github-repository}/' --repos 'mavencentral' {project.group-id}:{project.artifact-id}:{project.version}
+    - id: action
+      run: ~/.jbang/bin/jbang --repos 'github=https://maven.pkg.github.com/{github-repository}/' --repos 'mavencentral' {project.group-id}:{project.artifact-id}:{project.version}
       shell: bash
       env:
         JSON_INPUTS: ${{ toJSON(inputs) }}

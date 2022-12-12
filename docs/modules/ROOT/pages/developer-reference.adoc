@@ -1,0 +1,399 @@
+= Developer reference
+
+include::./includes/attributes.adoc[]
+
+Here is all you need to know to develop GitHub Actions with Quarkus GitHub Action.
+
+== Routing
+
+=== Action methods
+
+An action method is a method that is going to be executed when the GitHub Action is executed.
+
+You can have several action methods, in which case they will be executed in no particular order.
+
+You can also name your action methods to be able to trigger a specific method by passing an input to the action.
+
+An action method is a method of a public class and is annotated with `@io.quarkiverse.githubaction.Action`:
+
+[source,java]
+----
+public class MyGitHubAction {
+
+    @Action
+    void action() {
+        // do something
+    }
+}
+----
+
+As explained above, you can have several action methods, and they can be in several classes:
+
+[source,java]
+----
+public class MyGitHubAction1 {
+
+    @Action
+    void action1() {
+        // do something
+    }
+
+    @Action
+    void action2() {
+        // do something
+    }
+}
+
+public class MyGitHubAction2 {
+
+    @Action
+    void action3() {
+        // do something
+    }
+
+    @Action
+    void action4() {
+        // do something
+    }
+}
+----
+
+When executing the action, `action1()`, `action2()`, `action3()`, and `action4()` will be executed in no particular order.
+
+With this kind of setup, you can call your action with:
+
+[source,yaml]
+----
+      - name: Run my action
+        uses: my/action-github-repository@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+----
+
+=== Named actions
+
+It might be practical for you to develop one GitHub Action for several related purposes.
+Quarkus GitHub Action comes with a nice feature for that: named actions.
+
+[source,java]
+----
+public class MyGitHubAction1 {
+
+    @Action("action1")
+    void action1() {
+        // do something
+    }
+
+    @Action("action2")
+    void action2() {
+        // do something
+    }
+}
+----
+
+You can then specifically get `action1()` to run with:
+
+[source,yaml]
+----
+      - name: Run my action
+        uses: my/action-github-repository@main
+        with:
+          action: action1 <1>
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+----
+<1> `action` is a special input that is used to route the action to the named action method, here `action1`.
+
+== Parameter injection
+
+Most of the other features of Quarkus GitHub Action are handled via parameter injection:
+you can inject parameters of different types into your action methods,
+Quarkus GitHub Action will automatically pass the parameters, properly initialized.
+
+You can of course pass several of the following parameter types to the action methods.
+
+=== Inputs
+
+Inputs are values that are passed from the GitHub workflow to the GitHub Action, for instance with the following step:
+
+[source,yaml]
+----
+      - name: Run my action
+        uses: my/action-github-repository@main
+        with:
+          my-input: "My value"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+----
+
+It is required to declare the inputs in the `action.yml` descriptor:
+
+[source,yaml]
+----
+name: 'My Action'
+description: 'Description of my action'
+inputs:
+  my-input:
+    description: 'My input'
+    required: true <1>
+    default: 'My default value' <2>
+
+# ... rest of the descriptor ...
+----
+<1> An input can be required or optional (optional by default).
+<2> An input can have a default value.
+
+Getting the `my-input` input from an action method is easy:
+
+[source,java]
+----
+    @Action
+    void action(Inputs inputs) {
+        String myInput = inputs.getRequired("my-input");
+    }
+----
+
+`Inputs` offers all sorts of utility methods such as `get(String)` which returns an `Optional`, `getRequired(String)` which makes sure the input is provided, `getBoolean(String)`, `getLong(String)`, `getInteger(String)`...
+
+You can also get all the inputs as a `Map<String, String>` with `all()`.
+
+[NOTE]
+====
+Contributions are welcome to add more utility methods to `Inputs`.
+====
+
+You can find more information about inputs in https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#inputs[the GitHub Actions documentation].
+
+=== Context
+
+A GitHub action is executed within a context, which provides all sorts of information about the execution environment of the action.
+
+To access the context, inject a `Context` instance into your action method:
+
+[source,java]
+----
+    @Action
+    void action(Context context) {
+        String runnerOs = context.getRunnerOs(); <1>
+
+        context.print(); <2>
+    }
+----
+<1> Get the GitHub Actions runner operating system.
+<2> Print all the available values. Useful to discover what is provided by the context.
+
+=== Commands
+
+GitHub Actions provides various commands which allows you to interact with the workflow run.
+
+For instance, you can set output variables, attach a job summary...
+
+All these commands are made available through a `io.quarkiverse.githubaction.Commands` instance,
+that you can inject into your action methods.
+
+==== Outputs
+
+Outputs are an important part of GitHub Actions.
+They are used to export values from an action
+so that they can be consumed in further steps.
+
+The first step in defining an output is to modify the `action.yml` descriptor to declare the output:
+
+[source,yaml]
+----
+outputs:
+  my-output:
+    value: ${{ steps.action.outputs.my-output }}
+----
+
+This is required because we use a composite action.
+The output from the inner step needs to be mapped to an output of the action.
+
+Next step is to actually produce the output in your action method:
+
+[source,java]
+----
+    @Action
+    void action(Commands commands) {
+        commands.setOutput("my-output", "My value");
+    }
+----
+
+[NOTE]
+====
+You can produce several outputs.
+====
+
+And finally you can consume the output in another step of a GitHub Actions workflow:
+
+[source,yaml]
+----
+    steps:
+      - name: Run my action
+        id: my-action
+        uses: my/action-github-repository@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Display output
+        run: |
+          echo "${{steps.my-action.outputs.my-output}}"
+----
+
+==== Job summary
+
+A job summary is a Markdown content that you can attach to workflow run summary page.
+It can be used to provide an execution report for instance.
+
+Adding a job summary is easy:
+
+[source,java]
+----
+    @Action
+    void action(Commands commands) {
+        commands.jobSummary("# Markdown content"); <1>
+        commands.appendJobSummary("Some additional content"); <2>
+        commands.removeJobSummary(); <3>
+    }
+----
+<1> Set the job summary to `# Markdown content`.
+<2> Append `Some additional content` to a potentially preexisting job summary.
+<3> Remove the job summary. Not extremely useful but it is there just in case.
+
+==== Other commands
+
+There are several other commands available such as `saveState`, `environmentVariable` or `systemPath`.
+
+Have a look at the `Commands` interface and Javadoc to learn more about them.
+The Javadoc contains pointers to the corresponding GitHub Actions documentation sections.
+
+=== GitHub clients
+
+One common use case of GitHub Actions is to perform calls on the GitHub REST or GraphQL APIs.
+
+Quarkus GitHub Action has this use case covered and you can inject in your action methods:
+
+- An authenticated `GitHub` client (from the https://github.com/hub4j/github-api[Hub4j GitHub API])
+- An authenticated `DynamicGraphQLClient` client (from https://smallrye.io/smallrye-graphql/[SmallRye GraphQL])
+
+.Injecting a REST GitHub client
+[source]
+----
+    @Action
+    void action(GitHub gitHub) throws IOException {
+        gitHub.getRepository("another/repository");
+    }
+----
+
+.Injecting a GraphQL client
+[source]
+----
+    @Action
+    void action(DynamicGraphQLClient graphqlClient) throws ExecutionException, InterruptedException {
+        graphqlClient.executeSync("your GraphQL query");
+    }
+----
+
+[NOTE]
+====
+The clients are authenticated using the provided GitHub token.
+====
+
+=== Payloads
+
+A GitHub workflow run is started when an event is triggered,
+and to this event corresponds a payload which contains all the information about the event.
+
+Typically, when an issue is opened, you can obtain an `issues` payload.
+When a pull request is opened, you can obtain a `pull_request` payload.
+
+Quarkus GitHub Action is able to parse the payload and inject it into an action method.
+
+Payloads can also be used to restrict the use of an action to a particular event type,
+or to execute code that is specific to an event type.
+
+A payload comes with an authenticated GitHub client,
+which makes it possible to access the GitHub REST API.
+
+The following action method is executed any time an `issues` event is triggered
+(for instance when an issue is opened or edited):
+
+[source,java]
+----
+    @Action
+    void test(@Issue GHEventPayload.Issue issuePayload) throws IOException {
+        GHIssue issue = issuePayload.getIssue();
+
+        System.out.println("Repository: " + issue.getRepository().getFullName()); <1>
+        System.out.println("Issue title: " + issue.getTitle());
+
+        issue.comment("A new comment"); <2>
+    }
+----
+<1> Access some information from the payload.
+<2> Create a new comment in the issue.
+
+[TIP]
+====
+Given you can have several action methods in the same GitHub Actions,
+it is possible to execute code for several event types.
+====
+
+You can restrict the action method to a particular action of the event type.
+The following action method is executed when a new issue is opened:
+
+[source,java]
+----
+    @Action
+    void test(@Issue.Opened GHEventPayload.Issue issuePayload) {
+        System.out.println("Repository: " + issuePayload.getIssue().getRepository().getFullName());
+        System.out.println("Issue title: " + issuePayload.getIssue().getTitle());
+    }
+----
+
+[TIP]
+====
+You can find the list of all the supported event types in https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-app/dev/developer-reference.html#_event_types[the Quarkus GitHub App documentation].
+====
+
+=== Config files
+
+You can easily inject config files stored in the repository for which the action is run.
+
+If the file is a YAML or JSON file, it can be automatically deserialized by Jackson.
+
+If the file is a `.txt` file, it can be injected as a `String`.
+Text files can be used to inject templates.
+
+For now, the file is read from the default branch of the repository (typically `main`).
+
+If the path is relative, the file is searched in the `.github` directory.
+If the path is absolute, the file is searched from the root of the repository.
+
+[source,java]
+----
+    @Action
+    void test(@ConfigFile("example-config-file.yml") ConfigFileBean configFileBean) { <1>
+        System.out.println("Value 1: " + configFileBean.value1);
+        System.out.println("Value 2: " + configFileBean.value2);
+    }
+
+    public static class ConfigFileBean {
+
+        public String value1;
+
+        public String value2;
+    }
+----
+<1> Read `.github/example-config-file.yml` from the default branch of the repository and inject the values into `ConfigFileBean` via Jackson deserialization.
+
+== Debugging
+
+If you need to debug the behavior of the Quarkus GitHub Action extension,
+you can enable debug logging by adding the following configuration property to your `application.properties`:
+
+[source,properties]
+----
+quarkus.log.category."io.quarkiverse.githubaction".level=DEBUG
+----
+
+== Next steps
+
+Now is time to xref:testing.adoc[add some tests] and xref:push-to-production.adoc[push your GitHub Action to production].

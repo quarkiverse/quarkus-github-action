@@ -7,11 +7,16 @@
         <version>999-SNAPSHOT</version>
     </parent>
     <artifactId>quarkus-github-action-integration-tests</artifactId>
-    <name>Quarkus - GitHub Action - Integration Tests</name>
+    <name>Quarkus GitHub Action - Integration Tests</name>
     <dependencies>
         <dependency>
             <groupId>io.quarkiverse.githubaction</groupId>
             <artifactId>quarkus-github-action</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.githubaction</groupId>
+            <artifactId>quarkus-github-action-testing</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
