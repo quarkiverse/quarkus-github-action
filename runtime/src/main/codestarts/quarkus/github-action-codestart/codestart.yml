@@ -1,0 +1,16 @@
+name: github-action-codestart
+ref: github-action
+type: code
+tags: extension-codestart
+metadata:
+  title: GitHub Action
+  description: Start coding a GitHub Action.
+  related-guide-section: https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html
+language:
+  base:
+    data:
+      github-repository: your-org/your-repository
+    shared-data:
+      buildtool:
+        cmd:
+          build-ci: -B clean verify -Dquarkus.package.type=uber-jar -Dquarkus.package.add-runner-suffix=false

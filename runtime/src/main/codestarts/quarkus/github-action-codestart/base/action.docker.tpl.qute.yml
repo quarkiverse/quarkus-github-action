@@ -1,0 +1,9 @@
+name: '{project.name}'
+description: '{project.description}'
+inputs:
+  github-token:
+    description: 'GitHub token'
+    required: false
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/{github-repository}:main'

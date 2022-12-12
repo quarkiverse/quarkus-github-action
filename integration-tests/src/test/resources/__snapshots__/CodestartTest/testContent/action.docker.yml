@@ -1,0 +1,9 @@
+name: 'My action name'
+description: 'My action description'
+inputs:
+  github-token:
+    description: 'GitHub token'
+    required: false
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/your-org/your-repository:main'
