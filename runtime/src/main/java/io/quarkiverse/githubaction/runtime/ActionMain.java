@@ -46,17 +46,14 @@ public class ActionMain implements QuarkusApplication {
         try {
             Context context = contextInitializer.createContext();
             Inputs inputs = inputsInitializer.createInputs();
-            OutputsImpl outputs = new OutputsImpl();
             Commands commands = commandsInitializer.createCommands();
 
             GitHubEvent gitHubEvent = new GitHubEvent(inputs.getAction(), context,
                     getEventAction(context),
-                    inputs, outputs, commands,
+                    inputs, commands,
                     payloadTypeResolver.getPayloadType(context.getGitHubEventName()));
 
             gitHubEventHandler.handle(gitHubEvent);
-
-            outputs.produce(commands);
 
             return 0;
         } catch (Exception e) {
