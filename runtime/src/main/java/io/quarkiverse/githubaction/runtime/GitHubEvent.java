@@ -12,7 +12,6 @@ import org.kohsuke.github.GitHubBuilder;
 import io.quarkiverse.githubaction.Commands;
 import io.quarkiverse.githubaction.Context;
 import io.quarkiverse.githubaction.Inputs;
-import io.quarkiverse.githubaction.Outputs;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
 
@@ -26,7 +25,6 @@ public class GitHubEvent {
     private final Context context;
     private final String eventAction;
     private final Inputs inputs;
-    private final Outputs outputs;
     private final Commands commands;
 
     private final Class<? extends GHEventPayload> payloadType;
@@ -36,13 +34,12 @@ public class GitHubEvent {
     private volatile DynamicGraphQLClient gitHubGraphQLClient;
 
     GitHubEvent(String name, Context context, String eventAction,
-            Inputs inputs, Outputs outputs, Commands commands,
+            Inputs inputs, Commands commands,
             Class<? extends GHEventPayload> payloadType) {
         this.name = name;
         this.context = context;
         this.eventAction = eventAction;
         this.inputs = inputs;
-        this.outputs = outputs;
         this.commands = commands;
         this.payloadType = payloadType;
     }
@@ -65,10 +62,6 @@ public class GitHubEvent {
 
     public Inputs getInputs() {
         return inputs;
-    }
-
-    public Outputs getOutputs() {
-        return outputs;
     }
 
     public Commands getCommands() {
