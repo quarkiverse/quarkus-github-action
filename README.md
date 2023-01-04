@@ -64,9 +64,9 @@ to get everything wired.
 
 ## Status
 
-This extension is considered tech preview but should be considered stable very soon.
+This extension is considered stable and is used in production.
 
-It relies on the same principles as the [Quarkus GitHub App extension](https://github.com/quarkiverse/quarkus-github-app/), which has been stable for a while.
+It relies on the exact same principles as the [Quarkus GitHub App extension](https://github.com/quarkiverse/quarkus-github-app/).
 
 ## License
 
