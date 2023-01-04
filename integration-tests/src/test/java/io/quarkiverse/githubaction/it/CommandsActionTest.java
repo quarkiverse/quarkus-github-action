@@ -19,9 +19,9 @@ import io.quarkiverse.githubaction.CommandsInitializer;
 import io.quarkiverse.githubaction.Inputs;
 import io.quarkiverse.githubaction.InputsInitializer;
 import io.quarkiverse.githubaction.it.CommandsActionTest.CommandsActionTestProfile;
-import io.quarkiverse.githubaction.it.util.DefaultTestInputs;
 import io.quarkiverse.githubaction.runtime.CommandsImpl;
 import io.quarkiverse.githubaction.runtime.github.EnvFiles;
+import io.quarkiverse.githubaction.testing.DefaultTestInputs;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.junit.main.Launch;
@@ -66,8 +66,6 @@ public class CommandsActionTest {
             try {
                 Path githubOutputPath = Path.of(System.getProperty("java.io.tmpdir") + "/temp-github-output.txt");
                 Files.deleteIfExists(githubOutputPath);
-
-                System.out.println(githubOutputPath);
 
                 return new CommandsImpl(Map.of(EnvFiles.GITHUB_OUTPUT, githubOutputPath.toString()));
             } catch (IOException e) {

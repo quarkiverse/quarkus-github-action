@@ -1,0 +1,86 @@
+= Testing
+
+include::./includes/attributes.adoc[]
+
+Quarkus GitHub Actions are regular Quarkus command mode applications and can be tested with https://quarkus.io/guides/command-mode-reference#testing-command-mode-applications[`@QuarkusMainTest`].
+
+A simple test would look like:
+
+[source,java]
+----
+@QuarkusMainTest
+public class SimpleActionTest {
+
+    @Test
+    @Launch(value = {})
+    public void testLaunchCommand(LaunchResult result) {
+        assertThat(result.getOutput()).contains(SimpleAction.TEST_OUTPUT);
+    }
+}
+----
+
+While a more involved test pushing inputs and a suitable environment for output command execution would look like:
+
+[source,java]
+----
+@QuarkusMainTest
+@TestProfile(CommandsActionTestProfile.class) <1>
+public class CommandsActionTest {
+
+    @Test
+    @Launch(value = {})
+    public void testLaunchCommand(LaunchResult result) throws IOException {
+        assertThat(Path.of(System.getProperty("java.io.tmpdir") + "/temp-github-output.txt")).content()
+                .contains("testOutputKey=test output value" + System.lineSeparator());
+    }
+
+    public static class CommandsActionTestProfile implements QuarkusTestProfile {
+
+        @Override
+        public Set<Class<?>> getEnabledAlternatives() {
+            return Set.of(MockInputsInitializer.class, MockCommandsInitializer.class);
+        }
+    }
+
+    @Alternative
+    @Singleton
+    public static class MockInputsInitializer implements InputsInitializer {
+
+        @Override
+        public Inputs createInputs() {
+            return new DefaultTestInputs(Map.of(Inputs.ACTION, CommandsAction.ACTION_NAME)); <2>
+        }
+    }
+
+    @Alternative
+    @Singleton
+    public static class MockCommandsInitializer implements CommandsInitializer {
+
+        @Override
+        public Commands createCommands() {
+            try {
+                Path githubOutputPath = Path.of(System.getProperty("java.io.tmpdir") + "/temp-github-output.txt");
+                Files.deleteIfExists(githubOutputPath);
+
+                return new CommandsImpl(Map.of(EnvFiles.GITHUB_OUTPUT, githubOutputPath.toString()));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+    }
+}
+----
+<1> We use a test profile to push alternative beans for `InputsInitializer` and `CommandsInitializer`,
+allowing to provide inputs and a suitable environment for output command execution.
+<2> `DefaultTestInputs` is provided by:
++
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.githubaction</groupId>
+    <artifactId>quarkus-github-action-testing</artifactId>
+    <version>{quarkus-github-action-version}</version>
+</dependency>
+----
+
+You can find more test examples in https://github.com/quarkiverse/quarkus-github-action/tree/main/integration-tests[the Quarkus GitHub Action `integration-tests` module].

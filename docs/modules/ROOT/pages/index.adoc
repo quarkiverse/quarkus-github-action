@@ -2,20 +2,36 @@
 
 include::./includes/attributes.adoc[]
 
-This extensions simplifies the development of GitHub Actions with Quarkus.
+This extensions simplifies the development of GitHub Actions in Java with Quarkus.
 
-== Installation
+Developing custom GitHub Actions is extremely useful.
+People usually develop them in JavaScript or TypeScript.
 
-If you want to use this extension, you need to add the `io.quarkiverse.githubaction:quarkus-github-action` extension first.
-In your `pom.xml` file, add:
+This Quarkus extension provides an alternative to develop your GitHub Actions in Java.
+It also brings the ability to share code between GitHub Apps and GitHub Actions
+by using both Quarkus GitHub App and Quarkus GitHub Action.
 
-[source,xml,subs=attributes+]
+Why use Quarkus GitHub Action to develop your GitHub Actions:
+
+- If you are more familiar with the Java ecosystem, it comes in handy.
+- It doesn't bring any Quarkus-induced complexity, it just makes things easier.
+- It comes with several nice features to simplify the development of GitHub Actions in Java.
+- It relies on the https://github.com/hub4j/github-api[Hub4j GitHub API] so you have all the https://docs.github.com/en/rest[GitHub REST API] at your fingertips.
+- You can also inject an authenticated GraphQL client to talk to the https://docs.github.com/en/graphql[GitHub GraphQL API].
+
+A simple GitHub Action will look like:
+
+[source,java]
 ----
-<dependency>
-    <groupId>io.quarkiverse.githubaction</groupId>
-    <artifactId>quarkus-github-action</artifactId>
-    <version>{quarkus-github-action-version}</version>
-</dependency>
+class MyGitHubAction {
+
+  @Action
+  void doSomething() {
+    // do something useful here
+  }
+}
 ----
 
-#quarkus.log.category."io.quarkiverse.githubaction".level=DEBUG
+The extension takes care of all the wiring.
+
+Let's start by xref:create-github-action.adoc[creating our first GitHub Action].

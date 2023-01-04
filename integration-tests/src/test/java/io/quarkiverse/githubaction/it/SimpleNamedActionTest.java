@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import io.quarkiverse.githubaction.Inputs;
 import io.quarkiverse.githubaction.InputsInitializer;
 import io.quarkiverse.githubaction.it.SimpleNamedActionTest.SimpleNamedActionTestProfile;
-import io.quarkiverse.githubaction.it.util.DefaultTestInputs;
+import io.quarkiverse.githubaction.testing.DefaultTestInputs;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.junit.main.Launch;

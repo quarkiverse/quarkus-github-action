@@ -1,0 +1,217 @@
+= Create your first GitHub Action
+
+include::./includes/attributes.adoc[]
+
+== Create a repository
+
+GitHub Actions have to be hosted in a GitHub repository that is dedicated to the action.
+
+Thus the first step in the creation of a GitHub Action is to https://github.com/new[create a new GitHub repository].
+Create a completely empty repository (e.g. no `README` nor `.gitignore` nor license file), that will make the next steps easier.
+You can add them later on.
+
+The full name of your repository (either `username/repository-name` or `org-name/repository-name`) is going to be useful in the next step so keep it handy.
+In the following sections, we will consider it named `my/action-github-repository`.
+
+== Initialize your Quarkus application
+
+A Quarkus GitHub Action is a standard Quarkus application.
+
+You can create one including the Quarkus GitHub Action extension with the following command:
+
+[source, bash, subs=attributes+]
+----
+mvn io.quarkus.platform:quarkus-maven-plugin:{quarkus-version}:create \
+    -DprojectGroupId=org.acme \ <1>
+    -DprojectArtifactId=my-github-action \ <2>
+    -DprojectVersion=999-SNAPSHOT \ <3>
+    -DprojectName="My Action" \ <4>
+    -DprojectDescription="Description of my action" \ <5>
+    -Ddata=github-action-codestart.github-repository=my/action-github-repository \ <6>
+    -Dextensions="io.quarkiverse.githubaction:quarkus-github-action:{quarkus-github-action-version}" <7>
+----
+<1> The groupId of your Maven project.
+<2> The artifactId of your Maven project.
+<3> The version of your Maven project. Let's make it a rolling version.
+<4> The name of the action. It is used both in the `pom.xml` and in the metadata of the action.
+<5> The description of the action. It is used both in the `pom.xml` and in the metadata of the action.
+<6> The full name of the GitHub repository hosting the action (in the form `username/repository-name` or `org-name/repository-name`).
+<7> The Quarkus GitHub Action extension. Add it from the creation so that it can generate a full Quarkus GitHub Action application using Codestarts.
+
+This command creates a regular Quarkus Maven project.
+You can add additional Quarkus extensions or Java dependencies.
+
+Once the project is created, go to the `my-github-action` directory.
+
+== Push to GitHub
+
+If you have followed carefully the instructions above, you should be in your project directory.
+
+The next step is to push your GitHub Action to its GitHub repository (GitHub describes the instructions in the repository page):
+
+[source,bash]
+----
+git init
+git add .
+git commit -m "Init the project"
+git branch -M main
+git remote add origin git@github.com:my/action-github-repository.git <1>
+git push -u origin main
+----
+<1> Replace `your/github-repository` with the full name of the repository you created to host the GitHub Action.
+
+== Let's take a step back
+
+Now is a good time to take a step back and have a closer look at what we pushed to the repository:
+
+[source]
+----
+.
+├── README.md <1>
+├── mvnw <2>
+├── mvnw.cmd <2>
+├── pom.xml <3>
+├── action.yml <4>
+├── action.docker.yml <5>
+└── src
+    └── main
+        ├── docker <6>
+        │   ├── Dockerfile.jvm
+        │   ├── Dockerfile.legacy-jar
+        │   ├── Dockerfile.native
+        │   └── Dockerfile.native-micro
+        ├── java
+        │   └── org
+        │       └── acme
+        │           └── MyAction.java <7>
+        └── resources
+            └── application.properties <8>
+----
+<1> The root `README.md`. Add some content here so that users can understand what your GitHub Action does.
+<2> The Maven wrapper.
+<3> The `pom.xml` descriptor as we created a Maven project. Nothing specific here except a `<distributionManagement>` deploying the artifact to the repository's Maven repository.
+<4> The `action.yml` descriptor, more on that later.
+<5> An alternative `action.yml` if you want to use a Docker-packaged native executable, more on that later.
+<6> Some default Dockerfiles provided for Quarkus. Only useful if using `action.docker.yml`.
+<7> A simple GitHub Action example.
+<8> An `application.properties` with some default configuration properties to silence Quarkus at startup (no banner, only log errors).
+
+=== action.yml
+
+`action.yml` is the GitHub Action descriptor and it is important to understand what it is doing.
+
+The default one you obtain when creating a GitHub Action as described above is the following:
+
+[source,yaml]
+----
+name: 'My Action' <1>
+description: 'Description of my action' <2>
+inputs:
+  github-token: <3>
+    description: 'GitHub token'
+    required: true
+runs:
+  using: "composite" <4>
+  steps:
+    - run: curl -Ls https://sh.jbang.dev | bash -s - app setup <5>
+      shell: bash
+    - run: ~/.jbang/bin/jbang --repos 'github=https://maven.pkg.github.com/my/action-github-repository/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <6>
+      shell: bash
+      env:
+        JSON_INPUTS: ${{ toJSON(inputs) }} <7>
+        GITHUB_TOKEN: ${{ inputs.github-token }} <8>
+----
+<1> The name of the action passed at creation.
+<2> The description of the action passed at creation.
+<3> The GitHub token is mandatory if you stick to publishing the action Maven artifact to the GitHub hosted Maven repository.
+<4> The action is https://docs.github.com/en/actions/creating-actions/creating-a-composite-action[a composite action] which has a few specificities. You can add additional steps if required.
+<5> Install JBang, which is used to run the jar file.
+<6> Execute the jar file. It is downloaded from the Maven repository of the action GitHub repository.
+<7> Inputs are not transmitted to composite actions so we need to push them manually. The action will deserialize the JSON input automatically and make the inputs available.
+<8> The token is required to download the artifact from the GitHub hosted repository and will be used to authenticate the GitHub clients you can inject in your action code.
+
+[NOTE]
+====
+A composite action can be executed on all sorts of hosts, Linux, macOS or Windows.
+====
+
+[NOTE]
+====
+Given it is a composite action, you can add additional steps to the action.
+
+Typically, if you want to use a Java version different from the one installed by JBang for executing your code,
+you can install Java by adding the following step just before the step running the jar:
+
+[source,yaml]
+----
+    - name: Set up JDK 19
+      uses: actions/setup-java@v3
+      with:
+        java-version: 19
+        distribution: temurin
+----
+====
+
+==== Docker container action alternative
+
+Another alternative is to build a Docker image with your application and use it as https://docs.github.com/en/actions/creating-actions/creating-a-docker-container-action[a Docker container action].
+
+In the generated application, we provide both an alternative `action.docker.yml` (that you need to rename to `action.yml`) and a workflow file to publish the Docker image to the Docker repository of the action repository.
+
+[WARNING]
+====
+Using Docker container actions comes with some constraints as you can only run them on Linux hosts.
+
+It is a limitation of GitHub Actions.
+
+Except if you have specific requirements, it is recommended to use the default composite action approach.
+====
+
+=== application.properties
+
+The default `application.properties` contains some configuration properties to make Quarkus startup silent:
+
+[source,properties]
+----
+quarkus.log.category."io.quarkus".level=SEVERE
+quarkus.banner.enabled=false
+----
+
+=== MyAction.java
+
+This file is just an example of a very simple action:
+
+[source,java]
+----
+package org.acme;
+
+import io.quarkiverse.githubaction.Action;
+
+public class MyGitHubAction {
+
+    @Action
+    void action() {
+        System.out.println("Hello from Quarkus GitHub Action");
+    }
+}
+----
+
+The `action()` method will be called when the action is run on GitHub Actions and will print the message to the output.
+
+== Run your action
+
+From there, everything is ready to run your simple GitHub Action.
+
+Create a workflow in a separate repository with the following step:
+
+[source,yaml]
+----
+      - name: Run my action
+        uses: my/action-github-repository@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+----
+
+== Next steps
+
+Obviously, you can do a lot more with Quarkus GitHub Action and we describe all its features in the xref:developer-reference.adoc[Developer reference].

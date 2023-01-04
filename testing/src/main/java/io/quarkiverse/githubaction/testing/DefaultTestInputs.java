@@ -1,4 +1,4 @@
-package io.quarkiverse.githubaction.it.util;
+package io.quarkiverse.githubaction.testing;
 
 import java.util.Collections;
 import java.util.Map;

@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>quarkus-github-action-docs</artifactId>
-    <name>Quarkus - GitHub Action - Documentation</name>
+    <name>Quarkus GitHub Action - Documentation</name>
 
     <dependencies>
         <!-- Make sure the doc is built after the other artifacts -->

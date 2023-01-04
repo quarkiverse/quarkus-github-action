@@ -1,4 +1,4 @@
-package io.quarkiverse.githubaction.it.util;
+package io.quarkiverse.githubaction.testing;
 
 import io.quarkiverse.githubaction.Context;
 
