@@ -28,16 +28,16 @@ class MyGitHubAction {
 }
 ```
 
-Or you can also leverage the GitHub REST API (GraphQL is also supported), get the execution context, get the inputs, produce outputs... with something a bit more involved:
+Or you can also leverage the GitHub REST API (GraphQL is also supported), get the execution context, get the inputs, execute commands... with something a bit more involved:
 
 ```java
 class MyGitHubAction {
 
   @Action
-  void onIssueOpened(@Issue.Opened GHEventPayload.Issue issuePayload, Context context, Inputs inputs, Outputs outputs) throws IOException {
+  void onIssueOpened(@Issue.Opened GHEventPayload.Issue issuePayload, Context context, Inputs inputs, Commands commands) throws IOException {
     issuePayload.getIssue().comment("Hello from MyGitHubAction");
 
-    outputs.produce("output-key", "the value");
+    commands.setOutput("output-key", "the value");
   }
 }
 ```
