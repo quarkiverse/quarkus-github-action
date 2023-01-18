@@ -23,7 +23,7 @@ A simple GitHub Action will look like:
 
 [source,java]
 ----
-class MyGitHubAction {
+class MyAction {
 
   @Action
   void doSomething() {

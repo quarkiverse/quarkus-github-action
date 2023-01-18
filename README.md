@@ -19,7 +19,7 @@ And yes, it supports generating native executables with GraalVM or Mandrel.
 Your GitHub Action will look like:
 
 ```java
-class MyGitHubAction {
+class MyAction {
 
   @Action
   void doSomething() {
@@ -31,11 +31,11 @@ class MyGitHubAction {
 Or you can also leverage the GitHub REST API (GraphQL is also supported), get the execution context, get the inputs, execute commands... with something a bit more involved:
 
 ```java
-class MyGitHubAction {
+class MyAction {
 
   @Action
   void onIssueOpened(@Issue.Opened GHEventPayload.Issue issuePayload, Context context, Inputs inputs, Commands commands) throws IOException {
-    issuePayload.getIssue().comment("Hello from MyGitHubAction");
+    issuePayload.getIssue().comment("Hello from MyAction");
 
     commands.setOutput("output-key", "the value");
   }

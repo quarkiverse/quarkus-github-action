@@ -187,7 +187,7 @@ package org.acme;
 
 import io.quarkiverse.githubaction.Action;
 
-public class MyGitHubAction {
+public class MyAction {
 
     @Action
     void action() {
