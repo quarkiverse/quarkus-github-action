@@ -19,6 +19,14 @@ We will initialize a local Git repository and push it to GitHub in the following
 The full name of your repository (either `username/repository-name` or `org-name/repository-name`) is going to be useful in the next step so keep it handy.
 In the following sections, we will consider it named `my/action-github-repository`.
 
+[TIP]
+====
+If you created a private repository to host your action,
+make your action visible to your other private repositories by following https://docs.github.com/en/actions/creating-actions/sharing-actions-and-workflows-from-your-private-repository[these instructions].
+
+Note that actions stored in private repositories are not runnable in public repositories.
+====
+
 == Initialize your Quarkus application
 
 A Quarkus GitHub Action is a standard Quarkus application.
