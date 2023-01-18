@@ -91,6 +91,18 @@ Be careful to strictly follow the organization of the created project:
 the `action.yml` file must be at the root of your repository.
 ====
 
+Once you pushed the repository to GitHub,
+the `Publish action artifact to GitHub project's Maven repository` workflow will automatically publish your action to the Maven repository of the action's repository.
+
+Wait for it to complete before using your action.
+Go to the `Actions` tab of your action's repository to check the workflow status.
+
+[TIP]
+====
+When pushing new code to your action,
+the action will be updated only after the `Publish action artifact to GitHub project's Maven repository` was completed successfully.
+====
+
 == Let's take a step back
 
 Now is a good time to take a step back and have a closer look at what we pushed to the repository:
@@ -231,7 +243,14 @@ The `action()` method will be called when the action is run on GitHub Actions an
 
 == Run your action
 
-From there, everything is ready to run your simple GitHub Action.
+From there, everything is ready to run your simple GitHub Action,
+provided you waited for the `Publish action artifact to GitHub project's Maven repository` initial workflow run of your action's repository to finish.
+
+[TIP]
+====
+To check if the `Publish action artifact to GitHub project's Maven repository` workflow has run successfully,
+go to the `Actions` tab of the action's repository.
+====
 
 Create a workflow in a separate repository with the following step:
 
