@@ -61,11 +61,16 @@ as the `\` might not be correctly interpreted.
 This command creates a regular Quarkus Maven project.
 You can add additional Quarkus extensions or Java dependencies.
 
-Once the project is created, go to the `my-github-action` directory.
+Once the project is created, go to the `my-github-action` directory:
+
+[source, bash]
+----
+cd my-github-action
+----
 
 == Push to GitHub
 
-If you have followed carefully the instructions above, you should be in your project directory.
+If you have followed carefully the instructions above, you should be in your newly created project directory.
 
 The next step is to push your GitHub Action to its GitHub repository (GitHub describes the instructions in the repository page):
 
@@ -79,6 +84,12 @@ git remote add origin git@github.com:my/action-github-repository.git <1>
 git push -u origin main
 ----
 <1> Replace `your/github-repository` with the full name of the repository you created to host the GitHub Action.
+
+[WARNING]
+====
+Be careful to strictly follow the organization of the created project:
+the `action.yml` file must be at the root of your repository.
+====
 
 == Let's take a step back
 
