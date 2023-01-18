@@ -18,7 +18,7 @@ An action method is a method of a public class and is annotated with `@io.quarki
 
 [source,java]
 ----
-public class MyGitHubAction {
+public class MyAction {
 
     @Action
     void action() {
@@ -31,7 +31,7 @@ As explained above, you can have several action methods, and they can be in seve
 
 [source,java]
 ----
-public class MyGitHubAction1 {
+public class MyAction1 {
 
     @Action
     void action1() {
@@ -44,7 +44,7 @@ public class MyGitHubAction1 {
     }
 }
 
-public class MyGitHubAction2 {
+public class MyAction2 {
 
     @Action
     void action3() {
@@ -77,7 +77,7 @@ Quarkus GitHub Action comes with a nice feature for that: named actions.
 
 [source,java]
 ----
-public class MyGitHubAction1 {
+public class MyAction1 {
 
     @Action("action1")
     void action1() {
