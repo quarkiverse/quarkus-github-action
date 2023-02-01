@@ -33,7 +33,7 @@ A Quarkus GitHub Action is a standard Quarkus application.
 
 You can create one including the Quarkus GitHub Action extension with the following command:
 
-WARNING: Make sure you use the icon:copy[] button to copy the command.
+WARNING: Make sure you use the `📋` button to copy the command.
 
 [source, bash, subs=attributes+]
 ----
