@@ -2,7 +2,7 @@ package io.quarkiverse.githubaction.runtime;
 
 import java.io.File;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.jboss.logging.Logger;
 

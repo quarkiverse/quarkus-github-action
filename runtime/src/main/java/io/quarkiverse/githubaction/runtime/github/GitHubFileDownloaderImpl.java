@@ -3,8 +3,8 @@ package io.quarkiverse.githubaction.runtime.github;
 import java.io.IOException;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import org.jboss.logging.Logger;
 import org.kohsuke.github.GHContent;
