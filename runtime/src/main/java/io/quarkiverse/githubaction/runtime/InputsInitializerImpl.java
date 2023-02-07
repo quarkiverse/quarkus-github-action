@@ -1,7 +1,7 @@
 package io.quarkiverse.githubaction.runtime;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

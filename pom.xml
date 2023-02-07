@@ -22,11 +22,11 @@
         <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.version>2.16.1.Final</quarkus.version>
+        <quarkus.version>3.0.0.Alpha3</quarkus.version>
         <jandex-plugin.version>1.2.3</jandex-plugin.version>
 
         <quarkus-github-api.version>1.313.1</quarkus-github-api.version>
-        <quarkus-github-app.version>1.16.0</quarkus-github-app.version>
+        <quarkus-github-app.version>2.0.0.Alpha1</quarkus-github-app.version>
 
         <assertj.version>3.24.2</assertj.version>
     </properties>

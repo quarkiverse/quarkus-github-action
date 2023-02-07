@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.enterprise.inject.Alternative;
-import javax.inject.Singleton;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.inject.Singleton;
 
 import org.junit.jupiter.api.Test;
 import org.kohsuke.github.GitHub;
