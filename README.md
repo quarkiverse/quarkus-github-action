@@ -46,9 +46,20 @@ Quarkus GitHub Action will automatically inject all these fully initialized inst
 
 Focus on your business logic and don't bother about the ceremony.
 
+## Compatibility
+
+Quarkus GitHub App provides two different version streams, one compatible with Quarkus 2.x and the other compatible with Quarkus 3.x.
+
+| Quarkus | Quarkus GitHub Action | Documentation                                                                                        |
+|---------|-----------------------|------------------------------------------------------------------------------------------------------|
+| 2.x     | 1.x                   | [Documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/1.x/index.html) |
+| 3.x     | 2.x                   | [Documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html) |
+
+Use the latest version of the corresponding stream, [the list of versions is available on Maven Central](https://search.maven.org/artifact/io.quarkiverse.githubaction/quarkus-github-action).
+
 ## Documentation
 
-To get you started (and more!), please refer to [the extensive documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html).
+To get you started (and more!), please refer to [the extensive documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/1.x/index.html) - or for [a version compatible with Quarkus 3](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html).
 
 Anything unclear or missing in the documentation? Please [open an issue](https://github.com/quarkiverse/quarkus-github-action/issues/new).
 
