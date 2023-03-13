@@ -376,7 +376,8 @@ class GitHubActionProcessor {
             Collection<EventDefinition> eventDefinitions) {
         String payloadTypeResolverClassName = GitHubEvent.class.getPackageName() + ".PayloadTypeResolverImpl";
 
-        reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, payloadTypeResolverClassName));
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(payloadTypeResolverClassName)
+                .constructors().methods().fields().build());
 
         ClassCreator payloadTypeResolverClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
                 .className(payloadTypeResolverClassName)
@@ -418,7 +419,8 @@ class GitHubActionProcessor {
             BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
         String gitHubEventHandlerClassName = GitHubEventHandler.class.getName() + "Impl";
 
-        reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, gitHubEventHandlerClassName));
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(gitHubEventHandlerClassName)
+                .constructors().methods().fields().build());
 
         ClassCreator gitHubEventHandlerClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
                 .className(gitHubEventHandlerClassName)
@@ -544,10 +546,12 @@ class GitHubActionProcessor {
             TreeSet<ActionDispatchingMethod> actionDispatchingMethods = actionDispatchingMethodsEntry.getValue();
             ClassInfo declaringClass = actionDispatchingMethods.iterator().next().getMethod().declaringClass();
 
-            reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, declaringClassName.toString()));
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(declaringClassName.toString())
+                    .constructors().methods().fields().build());
 
             String multiplexerClassName = declaringClassName + "_Multiplexer";
-            reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, multiplexerClassName));
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(multiplexerClassName)
+                    .constructors().methods().fields().build());
 
             ClassCreator multiplexerClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
                     .className(multiplexerClassName)
