@@ -38,6 +38,7 @@ WARNING: Make sure you use the `📋` button to copy the command.
 [source, bash, subs=attributes+]
 ----
 mvn io.quarkus.platform:quarkus-maven-plugin:{quarkus-version}:create \
+    -DplatformVersion={quarkus-version} \
     -DprojectGroupId=org.acme \ <1>
     -DprojectArtifactId=my-github-action \ <2>
     -DprojectVersion=999-SNAPSHOT \ <3>
