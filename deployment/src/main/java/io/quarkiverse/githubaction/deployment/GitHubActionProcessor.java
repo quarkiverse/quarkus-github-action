@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -56,7 +57,6 @@ import io.quarkiverse.githubaction.runtime.GitHubEvent;
 import io.quarkiverse.githubaction.runtime.GitHubEventHandler;
 import io.quarkiverse.githubaction.runtime.Multiplexer;
 import io.quarkiverse.githubaction.runtime.PayloadTypeResolver;
-import io.quarkiverse.githubapi.deployment.GitHubApiClassWithBridgeMethodsBuildItem;
 import io.quarkiverse.githubapp.event.Actions;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
@@ -109,6 +109,9 @@ class GitHubActionProcessor {
     private static final MethodDescriptor EVENT_FIRE = MethodDescriptor.ofMethod(Event.class, "fire",
             void.class, Object.class);
 
+    private static final DotName WITH_BRIDGE_METHODS = DotName
+            .createSimple("com.infradna.tool.bridge_method_injector.WithBridgeMethods");
+
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
@@ -146,14 +149,26 @@ class GitHubActionProcessor {
      */
     @BuildStep
     void removeCompatibilityBridgeMethodsFromGitHubApi(
-            BuildProducer<BytecodeTransformerBuildItem> bytecodeTransformers,
-            List<GitHubApiClassWithBridgeMethodsBuildItem> gitHubApiClassesWithBridgeMethods) {
-        for (GitHubApiClassWithBridgeMethodsBuildItem gitHubApiClassWithBridgeMethods : gitHubApiClassesWithBridgeMethods) {
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<BytecodeTransformerBuildItem> bytecodeTransformers) {
+        Map<String, Set<String>> bridgeMethodsByClassName = new HashMap<>();
+
+        for (AnnotationInstance bridgeAnnotation : combinedIndex.getIndex().getAnnotations(WITH_BRIDGE_METHODS)) {
+            if (bridgeAnnotation.target().kind() != Kind.METHOD) {
+                continue;
+            }
+
+            String className = bridgeAnnotation.target().asMethod().declaringClass().name().toString();
+            bridgeMethodsByClassName.computeIfAbsent(className, cn -> new HashSet<>())
+                    .add(bridgeAnnotation.target().asMethod().name());
+        }
+
+        for (Entry<String, Set<String>> bridgeMethodsByClassNameEntry : bridgeMethodsByClassName.entrySet()) {
             bytecodeTransformers.produce(new BytecodeTransformerBuildItem.Builder()
-                    .setClassToTransform(gitHubApiClassWithBridgeMethods.getClassName())
+                    .setClassToTransform(bridgeMethodsByClassNameEntry.getKey())
                     .setVisitorFunction((ignored, visitor) -> new RemoveBridgeMethodsClassVisitor(visitor,
-                            gitHubApiClassWithBridgeMethods.getClassName(),
-                            gitHubApiClassWithBridgeMethods.getMethodsWithBridges()))
+                            bridgeMethodsByClassNameEntry.getKey(),
+                            bridgeMethodsByClassNameEntry.getValue()))
                     .build());
         }
     }
