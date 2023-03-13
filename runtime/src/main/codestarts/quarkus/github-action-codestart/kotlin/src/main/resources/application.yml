@@ -1,5 +1,0 @@
-quarkus:
-  log:
-    level: SEVERE
-  banner:
-    enabled: false
