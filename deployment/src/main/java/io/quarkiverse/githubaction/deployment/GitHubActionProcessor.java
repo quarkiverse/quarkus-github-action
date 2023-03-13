@@ -4,6 +4,8 @@ import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.ACTION
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.CONFIG_FILE;
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.EVENT;
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.INJECTABLE_TYPES;
+import static io.quarkus.gizmo.Type.classType;
+import static io.quarkus.gizmo.Type.parameterizedType;
 
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
@@ -13,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,7 +57,6 @@ import io.quarkiverse.githubaction.runtime.GitHubEvent;
 import io.quarkiverse.githubaction.runtime.GitHubEventHandler;
 import io.quarkiverse.githubaction.runtime.Multiplexer;
 import io.quarkiverse.githubaction.runtime.PayloadTypeResolver;
-import io.quarkiverse.githubapi.deployment.GitHubApiClassWithBridgeMethodsBuildItem;
 import io.quarkiverse.githubapp.event.Actions;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
@@ -84,6 +86,7 @@ import io.quarkus.gizmo.Gizmo;
 import io.quarkus.gizmo.MethodCreator;
 import io.quarkus.gizmo.MethodDescriptor;
 import io.quarkus.gizmo.ResultHandle;
+import io.quarkus.gizmo.SignatureBuilder;
 import io.quarkus.runtime.util.HashUtil;
 
 class GitHubActionProcessor {
@@ -105,6 +108,9 @@ class GitHubActionProcessor {
             Annotation[].class);
     private static final MethodDescriptor EVENT_FIRE = MethodDescriptor.ofMethod(Event.class, "fire",
             void.class, Object.class);
+
+    private static final DotName WITH_BRIDGE_METHODS = DotName
+            .createSimple("com.infradna.tool.bridge_method_injector.WithBridgeMethods");
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -143,14 +149,26 @@ class GitHubActionProcessor {
      */
     @BuildStep
     void removeCompatibilityBridgeMethodsFromGitHubApi(
-            BuildProducer<BytecodeTransformerBuildItem> bytecodeTransformers,
-            List<GitHubApiClassWithBridgeMethodsBuildItem> gitHubApiClassesWithBridgeMethods) {
-        for (GitHubApiClassWithBridgeMethodsBuildItem gitHubApiClassWithBridgeMethods : gitHubApiClassesWithBridgeMethods) {
+            CombinedIndexBuildItem combinedIndex,
+            BuildProducer<BytecodeTransformerBuildItem> bytecodeTransformers) {
+        Map<String, Set<String>> bridgeMethodsByClassName = new HashMap<>();
+
+        for (AnnotationInstance bridgeAnnotation : combinedIndex.getIndex().getAnnotations(WITH_BRIDGE_METHODS)) {
+            if (bridgeAnnotation.target().kind() != Kind.METHOD) {
+                continue;
+            }
+
+            String className = bridgeAnnotation.target().asMethod().declaringClass().name().toString();
+            bridgeMethodsByClassName.computeIfAbsent(className, cn -> new HashSet<>())
+                    .add(bridgeAnnotation.target().asMethod().name());
+        }
+
+        for (Entry<String, Set<String>> bridgeMethodsByClassNameEntry : bridgeMethodsByClassName.entrySet()) {
             bytecodeTransformers.produce(new BytecodeTransformerBuildItem.Builder()
-                    .setClassToTransform(gitHubApiClassWithBridgeMethods.getClassName())
+                    .setClassToTransform(bridgeMethodsByClassNameEntry.getKey())
                     .setVisitorFunction((ignored, visitor) -> new RemoveBridgeMethodsClassVisitor(visitor,
-                            gitHubApiClassWithBridgeMethods.getClassName(),
-                            gitHubApiClassWithBridgeMethods.getMethodsWithBridges()))
+                            bridgeMethodsByClassNameEntry.getKey(),
+                            bridgeMethodsByClassNameEntry.getValue()))
                     .build());
         }
     }
@@ -310,9 +328,11 @@ class GitHubActionProcessor {
             for (EventAnnotationLiteral eventAnnotationLiteral : eventDispatchingConfiguration.getEventAnnotationLiterals()) {
                 String literalClassName = getLiteralClassName(eventAnnotationLiteral.getName());
 
-                String signature = String.format("L%1$s<L%2$s;>;L%2$s;",
-                        AnnotationLiteral.class.getName().replace('.', '/'),
-                        eventAnnotationLiteral.getName().toString().replace('.', '/'));
+                String signature = SignatureBuilder.forClass()
+                        .setSuperClass(parameterizedType(classType(AnnotationLiteral.class),
+                                classType(eventAnnotationLiteral.getName())))
+                        .addInterface(classType(eventAnnotationLiteral.getName()))
+                        .build();
 
                 ClassCreator literalClassCreator = ClassCreator.builder().classOutput(classOutput)
                         .className(literalClassName)
@@ -356,7 +376,8 @@ class GitHubActionProcessor {
             Collection<EventDefinition> eventDefinitions) {
         String payloadTypeResolverClassName = GitHubEvent.class.getPackageName() + ".PayloadTypeResolverImpl";
 
-        reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, payloadTypeResolverClassName));
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(payloadTypeResolverClassName)
+                .constructors().methods().fields().build());
 
         ClassCreator payloadTypeResolverClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
                 .className(payloadTypeResolverClassName)
@@ -398,7 +419,8 @@ class GitHubActionProcessor {
             BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
         String gitHubEventHandlerClassName = GitHubEventHandler.class.getName() + "Impl";
 
-        reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, gitHubEventHandlerClassName));
+        reflectiveClasses.produce(ReflectiveClassBuildItem.builder(gitHubEventHandlerClassName)
+                .constructors().methods().fields().build());
 
         ClassCreator gitHubEventHandlerClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
                 .className(gitHubEventHandlerClassName)
@@ -409,6 +431,9 @@ class GitHubActionProcessor {
         FieldCreator eventFieldCreator = gitHubEventHandlerClassCreator.getFieldCreator(EVENT_EMITTER_FIELD, Event.class);
         eventFieldCreator.addAnnotation(Inject.class);
         eventFieldCreator.setModifiers(Modifier.PROTECTED);
+        eventFieldCreator.setSignature(SignatureBuilder.forField()
+                .setType(parameterizedType(classType(Event.class), classType(GitHubEvent.class)))
+                .build());
 
         MethodCreator handleMethodCreator = gitHubEventHandlerClassCreator.getMethodCreator(
                 "handle",
@@ -521,10 +546,12 @@ class GitHubActionProcessor {
             TreeSet<ActionDispatchingMethod> actionDispatchingMethods = actionDispatchingMethodsEntry.getValue();
             ClassInfo declaringClass = actionDispatchingMethods.iterator().next().getMethod().declaringClass();
 
-            reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, declaringClassName.toString()));
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(declaringClassName.toString())
+                    .constructors().methods().fields().build());
 
             String multiplexerClassName = declaringClassName + "_Multiplexer";
-            reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, multiplexerClassName));
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(multiplexerClassName)
+                    .constructors().methods().fields().build());
 
             ClassCreator multiplexerClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
                     .className(multiplexerClassName)
