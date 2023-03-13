@@ -4,6 +4,8 @@ import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.ACTION
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.CONFIG_FILE;
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.EVENT;
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.INJECTABLE_TYPES;
+import static io.quarkus.gizmo.Type.classType;
+import static io.quarkus.gizmo.Type.parameterizedType;
 
 import java.io.PrintStream;
 import java.lang.annotation.Annotation;
@@ -84,6 +86,7 @@ import io.quarkus.gizmo.Gizmo;
 import io.quarkus.gizmo.MethodCreator;
 import io.quarkus.gizmo.MethodDescriptor;
 import io.quarkus.gizmo.ResultHandle;
+import io.quarkus.gizmo.SignatureBuilder;
 import io.quarkus.runtime.util.HashUtil;
 
 class GitHubActionProcessor {
@@ -310,9 +313,11 @@ class GitHubActionProcessor {
             for (EventAnnotationLiteral eventAnnotationLiteral : eventDispatchingConfiguration.getEventAnnotationLiterals()) {
                 String literalClassName = getLiteralClassName(eventAnnotationLiteral.getName());
 
-                String signature = String.format("L%1$s<L%2$s;>;L%2$s;",
-                        AnnotationLiteral.class.getName().replace('.', '/'),
-                        eventAnnotationLiteral.getName().toString().replace('.', '/'));
+                String signature = SignatureBuilder.forClass()
+                        .setSuperClass(parameterizedType(classType(AnnotationLiteral.class),
+                                classType(eventAnnotationLiteral.getName())))
+                        .addInterface(classType(eventAnnotationLiteral.getName()))
+                        .build();
 
                 ClassCreator literalClassCreator = ClassCreator.builder().classOutput(classOutput)
                         .className(literalClassName)
@@ -409,6 +414,9 @@ class GitHubActionProcessor {
         FieldCreator eventFieldCreator = gitHubEventHandlerClassCreator.getFieldCreator(EVENT_EMITTER_FIELD, Event.class);
         eventFieldCreator.addAnnotation(Inject.class);
         eventFieldCreator.setModifiers(Modifier.PROTECTED);
+        eventFieldCreator.setSignature(SignatureBuilder.forField()
+                .setType(parameterizedType(classType(Event.class), classType(GitHubEvent.class)))
+                .build());
 
         MethodCreator handleMethodCreator = gitHubEventHandlerClassCreator.getMethodCreator(
                 "handle",
