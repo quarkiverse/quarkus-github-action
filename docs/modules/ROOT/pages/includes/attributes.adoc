@@ -1,2 +1,2 @@
 :quarkus-version: 3.0.0.Alpha5
-:quarkus-github-action-version: 2.0.0.Alpha1
+:quarkus-github-action-version: 2.0.0.Alpha2
