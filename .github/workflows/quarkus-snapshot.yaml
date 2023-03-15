@@ -29,17 +29,17 @@ jobs:
       - name: Install yq
         run: sudo add-apt-repository ppa:rmescandon/yq && sudo apt update && sudo apt install yq -y
 
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          path: current-repo
+
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
-
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          path: current-repo
 
       - name: Checkout Ecosystem
         uses: actions/checkout@v3
