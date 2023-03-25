@@ -63,7 +63,7 @@ public class IssueCatchAllActionTest {
 
                 @Override
                 public String getGitHubEventPath() {
-                    return System.getProperty("test.payloads.path") + "/issue-opened.json";
+                    return Thread.currentThread().getContextClassLoader().getResource("/payloads/issue-opened.json").getFile();
                 }
 
                 @Override
