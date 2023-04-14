@@ -15,6 +15,15 @@
         "code",
         "maintenance"
       ]
+    },
+    {
+      "login": "janpk",
+      "name": "Jan-Petter Krüger",
+      "avatar_url": "https://avatars.githubusercontent.com/u/809194?v=4",
+      "profile": "https://github.com/janpk",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -22,5 +31,6 @@
   "projectOwner": "quarkiverse",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }
