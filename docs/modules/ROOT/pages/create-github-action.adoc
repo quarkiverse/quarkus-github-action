@@ -185,15 +185,16 @@ A composite action can be executed on all sorts of hosts, Linux, macOS or Window
 ====
 Given it is a composite action, you can add additional steps to the action.
 
-Typically, if you want to use a Java version different from the one installed by JBang for executing your code,
-you can install Java by adding the following step just before the step running the jar:
+You can also tweak the existing steps of the action.
+For instance, if you want to use a Java version different from the one installed by default for executing your code,
+you can adjust the `setup-java` step as follows:
 
 [source,yaml]
 ----
-    - name: Set up JDK 19
+    - name: Set up JDK 20
       uses: actions/setup-java@v3
       with:
-        java-version: 19
+        java-version: 20
         distribution: temurin
 ----
 ====
