@@ -6,6 +6,9 @@ on:
     branches-ignore:
       - 'dependabot/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   build-and-push-action:
     runs-on: ubuntu-latest
