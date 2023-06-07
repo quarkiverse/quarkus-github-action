@@ -123,4 +123,9 @@
             </modules>
         </profile>
     </profiles>
+    <scm>
+        <connection>scm:git:git@github.com:quarkiverse/quarkus-github-action.git</connection>
+        <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-github-action.git</developerConnection>
+        <url>https://github.com/quarkiverse/quarkus-github-action</url>
+    </scm>
 </project>
