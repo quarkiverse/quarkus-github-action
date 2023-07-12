@@ -52,8 +52,8 @@ Quarkus GitHub App provides two different version streams, one compatible with Q
 
 | Quarkus | Quarkus GitHub Action | Documentation                                                                                        |
 |---------|-----------------------|------------------------------------------------------------------------------------------------------|
-| 3.x     | 2.x                   | [Documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html) |
-| 2.x     | 1.x                   | [Documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/1.x/index.html) |
+| 3.x     | 2.x                   | [Documentation](https://docs.quarkiverse.io/quarkus-github-action/dev/index.html) |
+| 2.x     | 1.x                   | [Documentation](https://docs.quarkiverse.io/quarkus-github-action/1.x/index.html) |
 
 Use the latest version of the corresponding stream, [the list of versions is available on Maven Central](https://search.maven.org/artifact/io.quarkiverse.githubaction/quarkus-github-action).
 
