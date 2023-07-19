@@ -31,7 +31,35 @@ Note that actions stored in private repositories are not runnable in public repo
 
 A Quarkus GitHub Action is a standard Quarkus application.
 
-You can create one including the Quarkus GitHub Action extension with the following command:
+You can create one including the Quarkus GitHub Action extension using the following https://quarkus.io/guides/cli-tooling[Quarkus CLI] command:
+
+WARNING: Make sure you use the `📋` button to copy the command.
+
+[source, bash, subs=attributes+]
+----
+quarkus create app \
+    -x quarkus-github-action \ <1>
+    org.acme:my-github-action:999-SNAPSHOT \ <2>
+    --name="My Action" \ <3>
+    --description="Description of my action" \ <4>
+    --data=github-action-codestart.github-repository=my/action-github-repository <5>
+----
+<1> The Quarkus GitHub Action extension. Add it right away so that the tooling can generate a full Quarkus GitHub Action application using Codestarts.
+<2> The GAV of your Maven project.
+<3> The name of the action. It is used both in the `pom.xml` and in the descriptor of the action (`action.yml`).
+<4> The description of the action. It is used both in the `pom.xml` and in the descriptor of the action (`action.yml`).
+<5> The full name of the GitHub repository hosting the action (in the form `username/repository-name` or `org-name/repository-name`).
+
+[TIP]
+====
+On Windows and macOS, it is recommended to concatenate all the options on one line (without `\`),
+as the `\` might not be correctly interpreted.
+====
+
+[NOTE]
+======
+We highly recommend the usage of the https://quarkus.io/guides/cli-tooling[Quarkus CLI] but if you cannot install it or prefer using Maven,
+you can create a Quarkus GitHub Action project using the following Maven command:
 
 WARNING: Make sure you use the `📋` button to copy the command.
 
@@ -45,23 +73,24 @@ mvn io.quarkus.platform:quarkus-maven-plugin:{quarkus-version}:create \
     -DprojectName="My Action" \ <4>
     -DprojectDescription="Description of my action" \ <5>
     -Ddata="github-action-codestart.github-repository=my/action-github-repository" \ <6>
-    -Dextensions="io.quarkiverse.githubaction:quarkus-github-action:{quarkus-github-action-version}" <7>
+    -Dextensions="quarkus-github-action" <7>
 ----
 <1> The groupId of your Maven project.
 <2> The artifactId of your Maven project.
 <3> The version of your Maven project. Let's make it a rolling version.
-<4> The name of the action. It is used both in the `pom.xml` and in the metadata of the action.
-<5> The description of the action. It is used both in the `pom.xml` and in the metadata of the action.
+<4> The name of the action. It is used both in the `pom.xml` and in the descriptor of the action (`action.yml`).
+<5> The description of the action. It is used both in the `pom.xml` and in the descriptor of the action (`action.yml`).
 <6> The full name of the GitHub repository hosting the action (in the form `username/repository-name` or `org-name/repository-name`).
-<7> The Quarkus GitHub Action extension. Add it from the creation so that it can generate a full Quarkus GitHub Action application using Codestarts.
+<7> The Quarkus GitHub Action extension. Add it right away so that the tooling can generate a full Quarkus GitHub Action application using Codestarts.
 
 [TIP]
 ====
 On Windows and macOS, it is recommended to concatenate all the options on one line (without `\`),
 as the `\` might not be correctly interpreted.
 ====
+======
 
-This command creates a regular Quarkus Maven project.
+These commands create a regular Quarkus Maven project.
 You can add additional Quarkus extensions or Java dependencies.
 
 Once the project is created, go to the `my-github-action` directory:
@@ -73,7 +102,7 @@ cd my-github-action
 
 == Push to GitHub
 
-If you have followed carefully the instructions above, you should be in your newly created project directory.
+If you have carefully followed the instructions above, you should be in your newly created project directory.
 
 The next step is to push your GitHub Action to its GitHub repository (GitHub describes the instructions in the repository page):
 
@@ -86,7 +115,7 @@ git branch -M main
 git remote add origin git@github.com:my/action-github-repository.git <1>
 git push -u origin main
 ----
-<1> Replace `your/github-repository` with the full name of the repository you created to host the GitHub Action.
+<1> Replace `my/action-github-repository` with the full name of the repository you created to host the GitHub Action.
 
 [WARNING]
 ====
