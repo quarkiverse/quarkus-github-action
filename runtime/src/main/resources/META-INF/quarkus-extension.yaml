@@ -13,7 +13,7 @@ metadata:
     - "business-automation"
   status: "stable"
   codestart:
-    name: "github-action"
+    name: "quarkiverse-github-action"
     languages:
       - "java"
     artifact: "io.quarkiverse.githubaction:quarkus-github-action:codestarts:jar:${project.version}"
