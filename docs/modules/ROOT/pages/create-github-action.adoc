@@ -90,7 +90,7 @@ as the `\` might not be correctly interpreted.
 ====
 ======
 
-These commands create a regular Quarkus Maven project.
+This command creates a regular Quarkus Maven project.
 You can add additional Quarkus extensions or Java dependencies.
 
 Once the project is created, go to the `my-github-action` directory:
@@ -292,8 +292,10 @@ Create a workflow in a separate repository with the following step:
       - name: Run my action
         uses: my/action-github-repository@main
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }} <1>
 ----
+<1> `${{ secrets.GITHUB_TOKEN }}` is a temporary secret created by GitHub when initializing the workflow, you don't need to define it yourself.
+The token is required when consuming the GitHub REST or GraphQL APIs so, in most cases, you need to pass it to the action.
 
 == Next steps
 
