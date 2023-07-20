@@ -1,5 +1,5 @@
 name: github-action-codestart
-ref: github-action
+ref: quarkiverse-github-action
 type: code
 tags: extension-codestart
 metadata:
