@@ -42,7 +42,7 @@ quarkus create app \
     org.acme:my-github-action:999-SNAPSHOT \ <2>
     --name="My Action" \ <3>
     --description="Description of my action" \ <4>
-    --data=github-action-codestart.github-repository=my/action-github-repository <5>
+    --data=quarkiverse-github-action-codestart.github-repository=my/action-github-repository <5>
 ----
 <1> The Quarkus GitHub Action extension. Add it right away so that the tooling can generate a full Quarkus GitHub Action application using Codestarts.
 <2> The GAV of your Maven project.
@@ -72,7 +72,7 @@ mvn io.quarkus.platform:quarkus-maven-plugin:{quarkus-version}:create \
     -DprojectVersion=999-SNAPSHOT \ <3>
     -DprojectName="My Action" \ <4>
     -DprojectDescription="Description of my action" \ <5>
-    -Ddata="github-action-codestart.github-repository=my/action-github-repository" \ <6>
+    -Ddata="quarkiverse-github-action-codestart.github-repository=my/action-github-repository" \ <6>
     -Dextensions="quarkus-github-action" <7>
 ----
 <1> The groupId of your Maven project.
