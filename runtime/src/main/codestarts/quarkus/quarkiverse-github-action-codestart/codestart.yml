@@ -1,5 +1,7 @@
-name: github-action-codestart
+name: quarkiverse-github-action-codestart
 ref: quarkiverse-github-action
+output-strategy:
+  ".github/workflows/ci.yml": replace
 type: code
 tags: extension-codestart
 metadata:
