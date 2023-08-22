@@ -25,7 +25,7 @@
         <quarkus.version>3.2.2.Final</quarkus.version>
         <jandex-plugin.version>3.1.2</jandex-plugin.version>
 
-        <quarkus-github-api.version>1.315.0</quarkus-github-api.version>
+        <quarkus-github-api.version>1.316.0</quarkus-github-api.version>
         <quarkus-github-app.version>2.0.4</quarkus-github-app.version>
 
         <assertj.version>3.24.2</assertj.version>
