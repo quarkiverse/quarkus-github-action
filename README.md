@@ -1,6 +1,6 @@
 # Quarkus GitHub Action
 
-[![Version](https://img.shields.io/maven-central/v/io.quarkiverse.githubaction/quarkus-github-action?logo=apache-maven&style=for-the-badge)](https://search.maven.org/artifact/io.quarkiverse.githubaction/quarkus-github-action)
+[![Version](https://img.shields.io/maven-central/v/io.quarkiverse.githubaction/quarkus-github-action?logo=apache-maven&style=for-the-badge)](https://central.sonatype.com/artifact/io.quarkiverse.githubaction/quarkus-github-action)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=for-the-badge)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
