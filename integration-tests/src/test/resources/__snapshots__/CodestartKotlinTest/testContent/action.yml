@@ -10,10 +10,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Set up JDK 17
+    - name: Set up JDK 21
       uses: actions/setup-java@v3
       with:
-        java-version: 17
+        java-version: 21
         distribution: temurin
     - id: install-jbang
       run: curl -Ls https://sh.jbang.dev | bash -s - app setup
