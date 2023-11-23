@@ -60,7 +60,13 @@ public interface Inputs {
     }
 
     default String getAction() {
-        return all().getOrDefault(ACTION, Action.UNNAMED);
+        String action = all().get(ACTION);
+
+        if (action == null || action.isBlank()) {
+            return Action.UNNAMED;
+        }
+
+        return action;
     }
 
     default Optional<String> getGitHubToken() {
