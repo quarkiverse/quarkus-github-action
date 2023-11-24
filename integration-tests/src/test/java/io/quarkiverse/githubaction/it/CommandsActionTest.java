@@ -36,7 +36,10 @@ public class CommandsActionTest {
     @Launch(value = {})
     public void testLaunchCommand(LaunchResult result) throws IOException {
         assertThat(Path.of(System.getProperty("java.io.tmpdir") + "/temp-github-output.txt")).content()
-                .contains("testOutputKey=test output value" + System.lineSeparator());
+                .contains("testOutputKey=test output value\n");
+
+        assertThat(Path.of(System.getProperty("java.io.tmpdir") + "/temp-github-output.txt")).content()
+                .contains("testMultilineOutputKey<<EOF\ntest\noutput\nvalue\nEOF\n");
     }
 
     public static class CommandsActionTestProfile implements QuarkusTestProfile {

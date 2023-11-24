@@ -33,7 +33,7 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void setOutput(String name, String value) {
-        appendEnvFile(EnvFiles.GITHUB_OUTPUT, name + "=" + value);
+        appendEnvFile(EnvFiles.GITHUB_OUTPUT, name, value);
     }
 
     @Override
@@ -122,17 +122,12 @@ public class CommandsImpl implements Commands {
 
     @Override
     public void saveState(String name, String value) {
-        appendEnvFile(EnvFiles.GITHUB_STATE, name + "=" + value);
+        appendEnvFile(EnvFiles.GITHUB_STATE, name, value);
     }
 
     @Override
     public void environmentVariable(String name, String value) {
-        if (!value.contains("\n")) {
-            appendEnvFile(EnvFiles.GITHUB_ENV, name + "=" + value);
-        } else {
-            appendEnvFile(EnvFiles.GITHUB_ENV,
-                    name + "<<EOF" + System.lineSeparator() + value + System.lineSeparator() + "EOF");
-        }
+        appendEnvFile(EnvFiles.GITHUB_ENV, name, value);
     }
 
     @Override
@@ -197,6 +192,10 @@ public class CommandsImpl implements Commands {
         System.out.println(command);
     }
 
+    private void appendEnvFile(String fileName, String name, String value) {
+        appendEnvFile(fileName, formatEnvNameValue(name, value));
+    }
+
     private void appendEnvFile(String fileName, String content) {
         writeEnvFile(fileName, content, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
     }
@@ -205,7 +204,7 @@ public class CommandsImpl implements Commands {
         Path path = getEnvFilePath(fileName);
 
         try {
-            Files.writeString(path, content + System.lineSeparator(), openOptions);
+            Files.writeString(path, content + "\n", openOptions);
 
             LOG.debugf("Wrote %s in environment file %s", content, path);
         } catch (IOException e) {
@@ -222,5 +221,13 @@ public class CommandsImpl implements Commands {
 
         Path path = Paths.get(envFileName);
         return path;
+    }
+
+    private static String formatEnvNameValue(String name, String value) {
+        if (value.contains("\n")) {
+            return name + "<<EOF\n" + value + "\nEOF";
+        }
+
+        return name + "=" + value;
     }
 }
