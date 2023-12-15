@@ -10,7 +10,82 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
+    public String getGitHubAction() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubActionPath() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubActionRef() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubActionRepository() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubActor() {
+        return null;
+    }
+
+    @Override
+    public Long getGitHubActorId() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubApiUrl() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubBaseRef() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubEnv() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubEventName() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubEventPath() {
+        return null;
+    }
+
+    @Override
+    public String getGithubGraphQLUrl() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubHeadRef() {
+        return null;
+    }
+
+    @Override
     public String getGitHubJob() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubOutput() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubPath() {
         return null;
     }
 
@@ -20,7 +95,17 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
-    public String getGitHubSha() {
+    public String getGitHubRefName() {
+        return null;
+    }
+
+    @Override
+    public boolean isGitHubRefProtected() {
+        return false;
+    }
+
+    @Override
+    public String getGitHubRefType() {
         return null;
     }
 
@@ -30,17 +115,17 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
+    public Long getGitHubRepositoryId() {
+        return null;
+    }
+
+    @Override
     public String getGitHubRepositoryOwner() {
         return null;
     }
 
     @Override
-    public Long getGitHubRunId() {
-        return null;
-    }
-
-    @Override
-    public Long getGitHubRunNumber() {
+    public Long getGitHubRepositoryOwnerId() {
         return null;
     }
 
@@ -55,27 +140,12 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
-    public String getGitHubActor() {
+    public Long getGitHubRunId() {
         return null;
     }
 
     @Override
-    public String getGitHubWorkflow() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubHeadRef() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubBaseRef() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubEventName() {
+    public Long getGitHubRunNumber() {
         return null;
     }
 
@@ -85,27 +155,32 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
-    public String getGitHubApiUrl() {
+    public String getGitHubSha() {
         return null;
     }
 
     @Override
-    public String getGithubGraphQLUrl() {
+    public String getGitHubStepSummary() {
         return null;
     }
 
     @Override
-    public String getGitHubRefName() {
+    public String getGitHubTriggeringActor() {
         return null;
     }
 
     @Override
-    public String getGitHubRefProtected() {
+    public String getGitHubWorkflow() {
         return null;
     }
 
     @Override
-    public String getGitHubRefType() {
+    public String getGitHubWorkflowRef() {
+        return null;
+    }
+
+    @Override
+    public String getGitHubWorkflowSha() {
         return null;
     }
 
@@ -115,42 +190,12 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
-    public String getGitHubAction() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubEventPath() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubActionRepository() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubActionRef() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubPath() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubEnv() {
-        return null;
-    }
-
-    @Override
-    public String getRunnerOs() {
-        return null;
-    }
-
-    @Override
     public String getRunnerArch() {
+        return null;
+    }
+
+    @Override
+    public String getRunnerDebug() {
         return null;
     }
 
@@ -160,12 +205,17 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
-    public String getRunnerToolCache() {
+    public String getRunnerOs() {
         return null;
     }
 
     @Override
     public String getRunnerTemp() {
+        return null;
+    }
+
+    @Override
+    public String getRunnerToolCache() {
         return null;
     }
 
