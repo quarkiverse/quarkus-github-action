@@ -3,7 +3,7 @@ package io.quarkiverse.githubaction;
 /**
  * Execute GitHub Actions commands by printing the command to the output.
  *
- * @see <a href="">https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions">Workflow
+ * @see <a href="https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions">Workflow
  *      commands for GitHub Actions</a>
  */
 public interface Commands {
