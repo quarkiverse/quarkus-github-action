@@ -191,16 +191,33 @@ inputs:
 runs:
   using: "composite" <5>
   steps:
-    - name: Set up JDK 21 <6>
-      uses: actions/setup-java@v4
-      with:
-        java-version: 21
-        distribution: temurin
+    - name: Inject quarkus-github-action repository credentials <6>
+      shell: bash
+      run: |
+        if [ -f ~/.m2/settings.xml ]; then
+          if ! grep -q '<id>quarkus-github-action</id>' ~/.m2/settings.xml; then
+            sed -i.bak 's@</servers>@<server><id>quarkus-github-action</id><username>${env.GITHUB_ACTOR}</username><password>${env.GITHUB_TOKEN}</password></server></servers>@' ~/.m2/settings.xml
+          fi
+        else
+          mkdir -p ~/.m2/
+          cat <<\EOF > ~/.m2/settings.xml
+        <?xml version="1.0"?>
+        <settings>
+          <servers>
+            <server>
+              <id>quarkus-github-action</id>
+              <username>${env.GITHUB_ACTOR}</username>
+              <password>${env.GITHUB_TOKEN}</password>
+            </server>
+          </servers>
+        </settings>
+        EOF
+        fi
     - name: Set up JBang
       uses: jbangdev/setup-jbang@main <7>
     - name: Run the action
       id: action
-      run: jbang --repos 'github=https://maven.pkg.github.com/my/action-github-repository/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <8>
+      run: jbang --java 21 --repos 'quarkus-github-action=https://maven.pkg.github.com/gsmet/my-github-action/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <8>
       shell: bash
       env:
         JSON_INPUTS: ${{ toJSON(inputs) }} <9>
@@ -211,9 +228,9 @@ runs:
 <3> The GitHub token is mandatory if you stick to publishing the action Maven artifact to the GitHub hosted Maven repository.
 <4> The optional action name, used for routing named actions to action methods.
 <5> The action is https://docs.github.com/en/actions/creating-actions/creating-a-composite-action[a composite action] which has a few specificities. You can add additional steps if required.
-<6> Install a Java 21 runtime configured for GitHub. It is important as it comes with a specific `~/.m2/settings.xml` allowing authenticated access to GitHub-hosted Maven repositories.
+<6> Inject the credentials for the `quarkus-github-action` repository in the `~/.m2/settings.xml`, allowing authenticated access to GitHub-hosted Maven repositories.
 <7> Install JBang, which is used to run the jar file.
-<8> Execute the jar file. It is downloaded from the Maven repository of the action GitHub repository.
+<8> Execute the jar file. It is downloaded from the Maven repository of the action GitHub repository. JBang will download a JDK if necessary.
 <9> Inputs are not transmitted to composite actions so we need to push them manually. The action will deserialize the JSON input automatically and make the inputs available.
 <10> The token is required to download the artifact from the GitHub hosted repository and will be used to authenticate the GitHub clients you can inject in your action code.
 
@@ -227,17 +244,20 @@ A composite action can be executed on all sorts of hosts, Linux, macOS or Window
 Given it is a composite action, you can add additional steps to the action.
 
 You can also tweak the existing steps of the action.
-For instance, if you want to use a Java version different from the one installed by default for executing your code,
-you can adjust the `setup-java` step as follows:
+For instance, if you want to use a Java version different from the one used by default for executing your code,
+you can adjust the `action` step as follows:
 
 [source,yaml]
 ----
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: 17
-        distribution: temurin
+    - name: Run the action
+      id: action
+      run: jbang --java 17 --repos 'quarkus-github-action=https://maven.pkg.github.com/gsmet/my-github-action/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <1>
+      shell: bash
+      env:
+        JSON_INPUTS: ${{ toJSON(inputs) }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
 ----
+<1> Use `--java 17` instead of `--java 21`.
 ====
 
 ==== Docker container action alternative
