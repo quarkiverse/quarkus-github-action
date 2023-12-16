@@ -7,8 +7,6 @@ class ContextImpl implements Context {
     private final String home;
     private final String gitHubAction;
     private final String gitHubActionPath;
-    private final String gitHubActionRef;
-    private final String gitHubActionRepository;
     private final String gitHubActor;
     private final String gitHubActorId;
     private final String gitHubApiUrl;
@@ -48,15 +46,10 @@ class ContextImpl implements Context {
     private final String runnerTemp;
     private final String runnerToolCache;
     private final String runnerWorkspace;
-    private final String actionsCacheUrl;
-    private final String actionsRuntimeToken;
-    private final String actionsRuntimeUrl;
 
     ContextImpl() {
         home = System.getenv("HOME");
         gitHubActionPath = System.getenv("GITHUB_ACTION_PATH");
-        gitHubActionRef = System.getenv("GITHUB_ACTION_REF");
-        gitHubActionRepository = System.getenv("GITHUB_ACTION_REPOSITORY");
         gitHubAction = System.getenv("GITHUB_ACTION");
         gitHubActor = System.getenv("GITHUB_ACTOR");
         gitHubActorId = System.getenv("GITHUB_ACTOR_ID");
@@ -97,9 +90,6 @@ class ContextImpl implements Context {
         runnerTemp = System.getenv("RUNNER_TEMP");
         runnerToolCache = System.getenv("RUNNER_TOOL_CACHE");
         runnerWorkspace = System.getenv("RUNNER_WORKSPACE");
-        actionsCacheUrl = System.getenv("ACTIONS_CACHE_URL");
-        actionsRuntimeToken = System.getenv("ACTIONS_RUNTIME_TOKEN");
-        actionsRuntimeUrl = System.getenv("ACTIONS_RUNTIME_URL");
     }
 
     @Override
@@ -115,16 +105,6 @@ class ContextImpl implements Context {
     @Override
     public String getGitHubActionPath() {
         return gitHubActionPath;
-    }
-
-    @Override
-    public String getGitHubActionRef() {
-        return gitHubActionRef;
-    }
-
-    @Override
-    public String getGitHubActionRepository() {
-        return gitHubActionRepository;
     }
 
     @Override
@@ -324,28 +304,11 @@ class ContextImpl implements Context {
     }
 
     @Override
-    public String getActionsCacheUrl() {
-        return actionsCacheUrl;
-    }
-
-    @Override
-    public String getActionsRuntimeToken() {
-        return actionsRuntimeToken;
-    }
-
-    @Override
-    public String getActionsRuntimeUrl() {
-        return actionsRuntimeUrl;
-    }
-
-    @Override
     public void print() {
         System.out.println("========= Context =========");
         System.out.println("home: " + home);
         System.out.println("gitHubAction: " + gitHubAction);
         System.out.println("gitHubActionPath: " + gitHubActionPath);
-        System.out.println("gitHubActionRef: " + gitHubActionRef);
-        System.out.println("gitHubActionRepository: " + gitHubActionRepository);
         System.out.println("gitHubActor: " + gitHubActor);
         System.out.println("gitHubActorId: " + gitHubActorId);
         System.out.println("gitHubApiUrl: " + gitHubApiUrl);
@@ -385,9 +348,6 @@ class ContextImpl implements Context {
         System.out.println("runnerTemp: " + runnerTemp);
         System.out.println("runnerToolCache: " + runnerToolCache);
         System.out.println("runnerWorkspace: " + runnerWorkspace);
-        System.out.println("actionsCacheUrl: " + actionsCacheUrl);
-        System.out.println("actionsRuntimeToken: " + actionsRuntimeToken);
-        System.out.println("actionsRuntimeUrl: " + actionsRuntimeUrl);
         System.out.println("===========================");
     }
 }

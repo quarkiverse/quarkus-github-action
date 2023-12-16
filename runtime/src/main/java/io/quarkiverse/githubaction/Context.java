@@ -35,18 +35,6 @@ public interface Context {
     String getGitHubActionPath();
 
     /**
-     * Not documented and should probably not be used.
-     */
-    @Deprecated
-    String getGitHubActionRef();
-
-    /**
-     * @return For a step executing an action, this is the owner and repository name of the action. For example,
-     *         actions/checkout.
-     */
-    String getGitHubActionRepository();
-
-    /**
      * @return The name of the person or app that initiated the workflow. For example, octocat.
      */
     String getGitHubActor();
@@ -279,15 +267,9 @@ public interface Context {
     String getRunnerToolCache();
 
     /**
-     * @return The runner workspace path.
+     * @return The runner workspace path. For example, /home/runner/work/your-repository.
      */
     String getRunnerWorkspace();
-
-    String getActionsRuntimeUrl();
-
-    String getActionsRuntimeToken();
-
-    String getActionsCacheUrl();
 
     /**
      * Print the full context, useful to inspect the values.

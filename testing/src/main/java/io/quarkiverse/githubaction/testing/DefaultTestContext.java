@@ -20,16 +20,6 @@ public class DefaultTestContext implements Context {
     }
 
     @Override
-    public String getGitHubActionRef() {
-        return null;
-    }
-
-    @Override
-    public String getGitHubActionRepository() {
-        return null;
-    }
-
-    @Override
     public String getGitHubActor() {
         return null;
     }
@@ -221,21 +211,6 @@ public class DefaultTestContext implements Context {
 
     @Override
     public String getRunnerWorkspace() {
-        return null;
-    }
-
-    @Override
-    public String getActionsRuntimeUrl() {
-        return null;
-    }
-
-    @Override
-    public String getActionsRuntimeToken() {
-        return null;
-    }
-
-    @Override
-    public String getActionsCacheUrl() {
         return null;
     }
 
