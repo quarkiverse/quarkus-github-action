@@ -1,11 +1,14 @@
 package ilove.quark.us;
 
 import io.quarkiverse.githubaction.Action;
+import io.quarkiverse.githubaction.Commands;
 
 public class MyAction {
 
     @Action
-    void test() {
-        System.out.println("Hello from Quarkus GitHub Action");
+    void action(Commands commands) {
+        commands.notice("Hello from Quarkus GitHub Action");
+
+        commands.appendJobSummary(":wave: Hello from Quarkus GitHub Action");
     }
 }
