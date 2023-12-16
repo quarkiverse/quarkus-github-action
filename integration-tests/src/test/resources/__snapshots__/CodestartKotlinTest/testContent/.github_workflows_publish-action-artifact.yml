@@ -3,6 +3,11 @@ name: Publish action artifact to GitHub project's Maven repository
 on:
   workflow_dispatch:
   push:
+    branches:
+      # Add branches here if you want to publish the action for more branches
+      - 'main'
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
     branches-ignore:
       - 'dependabot/**'
 
