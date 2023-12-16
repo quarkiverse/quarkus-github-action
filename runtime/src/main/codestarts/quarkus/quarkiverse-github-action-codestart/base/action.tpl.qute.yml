@@ -19,7 +19,7 @@ runs:
       uses: jbangdev/setup-jbang@main
     - name: Run the action
       id: action
-      run: jbang --repos 'github=https://maven.pkg.github.com/{github-repository}/' --repos 'mavencentral' {project.group-id}:{project.artifact-id}:{project.version}
+      run: jbang --java {java.version} --repos 'github=https://maven.pkg.github.com/{github-repository}/' --repos 'mavencentral' {project.group-id}:{project.artifact-id}:{project.version}
       shell: bash
       env:
         JSON_INPUTS: ${{ toJSON(inputs) }}
