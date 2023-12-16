@@ -2,6 +2,11 @@ name: Create and publish a Docker image
 
 on:
   push:
+    branches:
+      # Add branches here if you want to publish the action for more branches
+      - 'main'
+      - '[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
     branches-ignore:
       - 'dependabot/**'
 
