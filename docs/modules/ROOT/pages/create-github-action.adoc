@@ -294,17 +294,23 @@ This file is just an example of a very simple action:
 package org.acme;
 
 import io.quarkiverse.githubaction.Action;
+import io.quarkiverse.githubaction.Commands;
 
 public class MyAction {
 
     @Action
-    void action() {
-        System.out.println("Hello from Quarkus GitHub Action");
+    void action(Commands commands) {
+        commands.notice("Hello from Quarkus GitHub Action");
+
+        commands.appendJobSummary(":wave: Hello from Quarkus GitHub Action");
     }
 }
 ----
 
-The `action()` method will be called when the action is run on GitHub Actions and will print the message to the output.
+The `action()` method will be called when the action is run on GitHub Actions and will:
+
+- Log a `Hello from Quarkus GitHub Action` notice
+- Append `Hello from Quarkus GitHub Action` to the https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/[job summary]
 
 == Run your action
 
