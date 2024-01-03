@@ -48,20 +48,15 @@ Focus on your business logic and don't bother about the ceremony.
 
 ## Compatibility
 
-Quarkus GitHub App provides two different version streams, one compatible with Quarkus 2.x and the other compatible with Quarkus 3.x.
+Quarkus GitHub Action 2.x is compatible with Quarkus 3.x.
 
-| Quarkus | Quarkus GitHub Action | Documentation                                                                                        |
-|---------|-----------------------|------------------------------------------------------------------------------------------------------|
-| 3.x     | 2.x                   | [Documentation](https://docs.quarkiverse.io/quarkus-github-action/dev/index.html) |
-| 2.x     | 1.x                   | [Documentation](https://docs.quarkiverse.io/quarkus-github-action/1.x/index.html) |
-
-Use the latest version of the corresponding stream, [the list of versions is available on Maven Central](https://search.maven.org/artifact/io.quarkiverse.githubaction/quarkus-github-action).
+We recommend using the latest versions of both for the best experience.
 
 ## Documentation
 
-To get you started (and more!), please refer to [the extensive documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html) - or for [a version compatible with Quarkus 2.x](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/1.x/index.html).
+To get you started (and more!), please refer to [the extensive documentation](https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html).
 
-Anything unclear or missing in the documentation? Please [open an issue](https://github.com/quarkiverse/quarkus-github-action/issues/new).
+Anything unclear or missing in the documentation? Please [open an issue](https://github.com/quarkiverse/quarkus-github-action/issues/new), we will address it quickly.
 
 ## How?
 
