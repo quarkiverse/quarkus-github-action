@@ -217,7 +217,7 @@ runs:
       uses: jbangdev/setup-jbang@main <7>
     - name: Run the action
       id: action
-      run: jbang --java 21 --repos 'quarkus-github-action=https://maven.pkg.github.com/gsmet/my-github-action/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <8>
+      run: jbang --java 21 --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/gsmet/my-github-action/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <8>
       shell: bash
       env:
         JSON_INPUTS: ${{ toJSON(inputs) }} <9>
@@ -251,7 +251,7 @@ you can adjust the `action` step as follows:
 ----
     - name: Run the action
       id: action
-      run: jbang --java 17 --repos 'quarkus-github-action=https://maven.pkg.github.com/gsmet/my-github-action/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <1>
+      run: jbang --java 17 --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/gsmet/my-github-action/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <1>
       shell: bash
       env:
         JSON_INPUTS: ${{ toJSON(inputs) }}
