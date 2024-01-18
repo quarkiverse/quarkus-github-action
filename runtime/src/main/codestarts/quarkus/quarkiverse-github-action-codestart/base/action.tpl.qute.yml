@@ -37,7 +37,7 @@ runs:
       uses: jbangdev/setup-jbang@main
     - name: Run the action
       id: action
-      run: jbang --java {java.version} --repos 'quarkus-github-action=https://maven.pkg.github.com/{github-repository}/' --repos 'mavencentral' {project.group-id}:{project.artifact-id}:{project.version}
+      run: jbang --java {java.version} --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/{github-repository}/' --repos 'mavencentral' {project.group-id}:{project.artifact-id}:{project.version}
       shell: bash
       env:
         JSON_INPUTS: ${{ toJSON(inputs) }}
