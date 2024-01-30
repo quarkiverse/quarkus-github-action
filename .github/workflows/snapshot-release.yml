@@ -29,7 +29,7 @@ jobs:
       - name: Maven release ${{steps.metadata.outputs.next-version}}
         run: |
           mvn -B deploy -DperformRelease -Dno-samples -Prelease
-          env:
-            MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-            MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-            MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
