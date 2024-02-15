@@ -58,6 +58,14 @@ To get you started (and more!), please refer to [the extensive documentation](ht
 
 Anything unclear or missing in the documentation? Please [open an issue](https://github.com/quarkiverse/quarkus-github-action/issues/new), we will address it quickly.
 
+## Examples
+
+* The [Conversational Release Action](https://github.com/quarkusio/conversational-release-action) - used to release Quarkus
+* The [Build Reporter Action](https://github.com/quarkusio/action-build-reporter/) - used to generate a build report from the Surefire reports and more
+* The [Monitor Artifact Publication Action](https://github.com/quarkusio/monitor-artifact-publication-action) - used to monitor the publication of a Maven artifact to Maven Central
+* The [Maven Lockfile Action](https://github.com/chains-project/maven-lockfile) - used to check a project is in line with Maven Lockfile requirements
+* The [Pom to Badges Action](https://github.com/janpk/pom-to-badges) - used to generate badges from the dependencies of a project
+
 ## How?
 
 The Quarkus GitHub Action extension uses the [Hub4j GitHub API](https://github.com/hub4j/github-api)
