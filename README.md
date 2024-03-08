@@ -35,9 +35,14 @@ class MyAction {
 
   @Action
   void onIssueOpened(@Issue.Opened GHEventPayload.Issue issuePayload, Context context, Inputs inputs, Commands commands) throws IOException {
+    // Add a comment to the issue who triggered the job
     issuePayload.getIssue().comment("Hello from MyAction");
 
+    // Set the value of an output
     commands.setOutput("output-key", "the value");
+
+    // Append Markdown to the job summary
+    commands.appendJobSummary(":wave: Hello from Quarkus GitHub Action");
   }
 }
 ```
@@ -60,11 +65,11 @@ Anything unclear or missing in the documentation? Please [open an issue](https:/
 
 ## Examples
 
-* The [Conversational Release Action](https://github.com/quarkusio/conversational-release-action) - used to release Quarkus
-* The [Build Reporter Action](https://github.com/quarkusio/action-build-reporter/) - used to generate a build report from the Surefire reports and more
-* The [Monitor Artifact Publication Action](https://github.com/quarkusio/monitor-artifact-publication-action) - used to monitor the publication of a Maven artifact to Maven Central
-* The [Maven Lockfile Action](https://github.com/chains-project/maven-lockfile) - used to check a project is in line with Maven Lockfile requirements
-* The [Pom to Badges Action](https://github.com/janpk/pom-to-badges) - used to generate badges from the dependencies of a project
+* [Conversational Release Action](https://github.com/quarkusio/conversational-release-action) - used to release Quarkus
+* [Build Reporter Action](https://github.com/quarkusio/action-build-reporter/) - used to generate a build report from the Surefire reports and more
+* [Monitor Artifact Publication Action](https://github.com/quarkusio/monitor-artifact-publication-action) - used to monitor the publication of a Maven artifact to Maven Central
+* [Maven Lockfile Action](https://github.com/chains-project/maven-lockfile) - used to check a project is in line with Maven Lockfile requirements
+* [Pom to Badges Action](https://github.com/janpk/pom-to-badges) - used to generate badges from the dependencies of a project
 
 ## How?
 
