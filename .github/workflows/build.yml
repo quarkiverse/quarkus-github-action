@@ -21,6 +21,7 @@ on:
       - '*.adoc'
       - '*.txt'
       - '.all-contributorsrc'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -39,3 +40,6 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B formatter:validate clean install --file pom.xml -Dnative
+        env:
+          CURRENT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_REPO: ${{ github.repository }}
