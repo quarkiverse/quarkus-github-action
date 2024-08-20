@@ -318,7 +318,7 @@ The following action method is executed any time an `issues` event is triggered
 [source,java]
 ----
     @Action
-    void test(@Issue GHEventPayload.Issue issuePayload) throws IOException {
+    void action(@Issue GHEventPayload.Issue issuePayload) throws IOException {
         GHIssue issue = issuePayload.getIssue();
 
         System.out.println("Repository: " + issue.getRepository().getFullName()); <1>
@@ -342,7 +342,7 @@ The following action method is executed when a new issue is opened:
 [source,java]
 ----
     @Action
-    void test(@Issue.Opened GHEventPayload.Issue issuePayload) {
+    void action(@Issue.Opened GHEventPayload.Issue issuePayload) {
         System.out.println("Repository: " + issuePayload.getIssue().getRepository().getFullName());
         System.out.println("Issue title: " + issuePayload.getIssue().getTitle());
     }
@@ -370,7 +370,7 @@ If the path is absolute, the file is searched from the root of the repository.
 [source,java]
 ----
     @Action
-    void test(@ConfigFile("example-config-file.yml") ConfigFileBean configFileBean) { <1>
+    void action(@ConfigFile("example-config-file.yml") ConfigFileBean configFileBean) { <1>
         System.out.println("Value 1: " + configFileBean.value1);
         System.out.println("Value 2: " + configFileBean.value2);
     }
@@ -383,6 +383,37 @@ If the path is absolute, the file is searched from the root of the repository.
     }
 ----
 <1> Read `.github/example-config-file.yml` from the default branch of the repository and inject the values into `ConfigFileBean` via Jackson deserialization.
+
+=== GHRepository
+
+You can inject the current repository into any action method. This allows you to access the REST API for https://docs.github.com/en/rest/repos[GitHub repositories].
+
+This enables you to e.g.:
+
+- create / query issues
+- create / query pull requests
+- access workflows
+- and much more
+
+[source,java]
+----
+@Action
+void action(GHRepository repository) { <1>
+    System.out.println(repository.getFullName());
+
+    var issueBuilder = repository.createIssue("Issue Name"); <2>
+    var pullRequest = repository.getPullRequest(42); <3>
+    var workflows = repository.listWorkflows(); <4>
+}
+
+----
+<1> Inject the current repository
+<2> Create an issue
+<3> Retreive a pull request
+<4> List all workflows
+
+
+For a complete list of all possibilities and the concrete syntax see the javadoc for https://github-api.kohsuke.org/apidocs/org/kohsuke/github/GHRepository.html[GHRepository].
 
 == Debugging
 
