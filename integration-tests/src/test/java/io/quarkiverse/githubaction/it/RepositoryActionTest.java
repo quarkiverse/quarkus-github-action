@@ -44,7 +44,9 @@ public class RepositoryActionTest {
     @Launch(value = {}, exitCode = 1)
     @EnabledIf("isLocal")
     public void shouldFailWhenRunningLocally(LaunchResult result) {
-        assertThat(result.getErrorOutput()).contains(REPOSITORY_NAME);
+        String fullOutput = result.getOutput() + "\n" + result.getErrorOutput();
+
+        assertThat(fullOutput).contains(REPOSITORY_NAME);
     }
 
     public static class RepositoryActionTestProfile implements QuarkusTestProfile {

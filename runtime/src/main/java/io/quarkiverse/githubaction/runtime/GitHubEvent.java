@@ -159,34 +159,27 @@ public class GitHubEvent {
     }
 
     public GHRepository getGHRepository() {
-        var repo = gitHubRepository;
-        if (repo == null) {
+        GHRepository localGitHubRepository = gitHubRepository;
+        if (localGitHubRepository == null) {
             synchronized (this) {
                 if (gitHubRepository == null) {
-                    gitHubRepository = repo = repository();
+                    gitHubRepository = localGitHubRepository = createGHRepository(getGitHub(), context.getGitHubRepository());
                 }
             }
         }
-        return repo;
+        return localGitHubRepository;
     }
 
-    private GHRepository repository() {
-        var gitHub = getGitHub();
-        return gitHub.isOffline() ? offlineRepository() : onlineRepository(gitHub);
-    }
-
-    private GHRepository onlineRepository(GitHub gitHub) {
-        var repoName = context.getGitHubRepository();
-        try {
-            return gitHub.getRepository(repoName);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Unable to access repository '%s'".formatted(repoName), ex);
+    private static GHRepository createGHRepository(GitHub gitHub, String repositoryName) {
+        if (gitHub.isOffline()) {
+            throw new IllegalStateException(
+                    "The GitHub REST client is offline, unable to inject the repository '%s'".formatted(repositoryName));
         }
-    }
 
-    private GHRepository offlineRepository() {
-        var msg = "GitHub is offline, unable to access repository '%s'".formatted(context.getGitHubRepository());
-        System.err.println(msg);
-        throw new UnsupportedOperationException(msg);
+        try {
+            return gitHub.getRepository(repositoryName);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Unable to access repository '%s'".formatted(repositoryName), ex);
+        }
     }
 }

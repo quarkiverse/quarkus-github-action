@@ -409,11 +409,11 @@ void action(GHRepository repository) { <1>
 ----
 <1> Inject the current repository
 <2> Create an issue
-<3> Retreive a pull request
+<3> Retrieve a pull request
 <4> List all workflows
 
 
-For a complete list of all possibilities and the concrete syntax see the javadoc for https://github-api.kohsuke.org/apidocs/org/kohsuke/github/GHRepository.html[GHRepository].
+For a complete list of all possibilities and the concrete syntax see the Javadoc for https://github-api.kohsuke.org/apidocs/org/kohsuke/github/GHRepository.html[GHRepository].
 
 == Debugging
 
