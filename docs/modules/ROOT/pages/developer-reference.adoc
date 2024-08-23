@@ -70,6 +70,13 @@ With this kind of setup, you can call your action with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ----
 
+[TIP]
+====
+To call an action from a private repository, the action itself needs to be in a private repository as well (under the same organization or user).
+
+For details on how to call the action, please see xref:create-github-action.adoc#private_repo[Run your action].
+====
+
 === Named actions
 
 It might be practical for you to develop one GitHub Action for several related purposes.

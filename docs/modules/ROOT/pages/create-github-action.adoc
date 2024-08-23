@@ -335,6 +335,25 @@ Create a workflow in a separate repository with the following step:
 <1> `${{ secrets.GITHUB_TOKEN }}` is a temporary secret created by GitHub when initializing the workflow, you don't need to define it yourself.
 The token is required when consuming the GitHub REST or GraphQL APIs so, in most cases, you need to pass it to the action.
 
+[[private_repo]]
+[WARNING]
+====
+You may call a Quarkus GitHub Action defined in a public repository from a public or private GitHub repository.
+
+However, the workflow above will malfunction when the Quarkus GitHub Action is hosted in a private repository as the GitHub hosted Maven repository might not be accessible.
+The automatically generated `GITHUB_TOKEN` only grants access to private packages that are part of the https://docs.github.com/en/packages/learn-github-packages/about-permissions-for-github-packages#access-tokens[same repository] the workflow is defined in.
+
+To use a Quarkus GitHub Action hosted in a separate private repository, please follow these steps:
+
+- Create or use a https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens[Personal Access Token] with the `read:packages` scope. Depending on the GitHub API calls to be performed, additional permissions can be necessary.
+- In the repository, that is using the action, https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions[create a secret] using the token.
+- The name you give to the secret (e.g. `MY_ACTION_TOKEN`) must in turn be referenced in the workflow configuration above: Replace &#x2780; with `github-token: ${{ secrets.MY_ACTION_TOKEN }}`.
+
+After applying these steps, the workflow should be executed flawlessly.
+
+It is important to mention though that secrets are not made available in workflows triggered by the `pull_request` event.
+====
+
 == Next steps
 
 Obviously, you can do a lot more with Quarkus GitHub Action and we describe all its features in the xref:developer-reference.adoc[Developer reference].
