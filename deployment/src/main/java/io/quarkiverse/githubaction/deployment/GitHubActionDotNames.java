@@ -3,6 +3,7 @@ package io.quarkiverse.githubaction.deployment;
 import java.util.Set;
 
 import org.jboss.jandex.DotName;
+import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
 import io.quarkiverse.githubaction.Action;
@@ -22,12 +23,14 @@ final class GitHubActionDotNames {
     static final DotName CONFIG_FILE = DotName.createSimple(ConfigFile.class.getName());
 
     static final DotName GITHUB = DotName.createSimple(GitHub.class.getName());
+    static final DotName REPOSITORY = DotName.createSimple(GHRepository.class.getName());
     static final DotName DYNAMIC_GRAPHQL_CLIENT = DotName.createSimple(DynamicGraphQLClient.class.getName());
     static final DotName CONTEXT = DotName.createSimple(Context.class.getName());
     static final DotName INPUTS = DotName.createSimple(Inputs.class.getName());
     static final DotName COMMANDS = DotName.createSimple(Commands.class.getName());
 
-    static final Set<DotName> INJECTABLE_TYPES = Set.of(GITHUB, DYNAMIC_GRAPHQL_CLIENT, CONTEXT, INPUTS, COMMANDS);
+    static final Set<DotName> INJECTABLE_TYPES = Set.of(
+            GITHUB, REPOSITORY, DYNAMIC_GRAPHQL_CLIENT, CONTEXT, INPUTS, COMMANDS);
 
     private GitHubActionDotNames() {
     }

@@ -72,7 +72,6 @@ import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedClassBuildItem;
-import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.builditem.RunTimeConfigurationDefaultBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyBuildItem;
@@ -125,15 +124,13 @@ class GitHubActionProcessor {
 
     @BuildStep
     void registerForReflection(CombinedIndexBuildItem combinedIndex,
-            BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
             BuildProducer<ReflectiveHierarchyBuildItem> reflectiveHierarchies) {
         // Types used for config files
         for (AnnotationInstance configFileAnnotationInstance : combinedIndex.getIndex().getAnnotations(CONFIG_FILE)) {
             MethodParameterInfo methodParameter = configFileAnnotationInstance.target().asMethodParameter();
             short parameterPosition = methodParameter.position();
             Type parameterType = methodParameter.method().parameterTypes().get(parameterPosition);
-            reflectiveHierarchies.produce(new ReflectiveHierarchyBuildItem.Builder()
-                    .type(parameterType)
+            reflectiveHierarchies.produce(ReflectiveHierarchyBuildItem.builder(parameterType)
                     .index(combinedIndex.getIndex())
                     .source(GitHubActionProcessor.class.getSimpleName() + " > " + methodParameter.method().declaringClass()
                             + "#"
@@ -144,7 +141,7 @@ class GitHubActionProcessor {
 
     /**
      * The bridge methods added for binary compatibility in the GitHub API are causing issues with Mockito
-     * and more specifically with Byte Buddy (see https://github.com/raphw/byte-buddy/issues/1162).
+     * and more specifically with Byte Buddy (see <a href="https://github.com/raphw/byte-buddy/issues/1162">...</a>).
      * They don't bring much to the plate for new applications that are regularly updated so let's remove them altogether.
      */
     @BuildStep
@@ -174,7 +171,7 @@ class GitHubActionProcessor {
     }
 
     @BuildStep
-    void generateClasses(CombinedIndexBuildItem combinedIndex, LaunchModeBuildItem launchMode,
+    void generateClasses(CombinedIndexBuildItem combinedIndex,
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<GeneratedBeanBuildItem> generatedBeans,
             BuildProducer<GeneratedClassBuildItem> generatedClasses,
@@ -185,7 +182,7 @@ class GitHubActionProcessor {
         // Add @Vetoed to all the user-defined event listening classes
         annotationsTransformer
                 .produce(new AnnotationsTransformerBuildItem(new VetoUserDefinedEventListeningClassesAnnotationsTransformer(
-                        allEventDefinitions.stream().map(d -> d.getAnnotation()).collect(Collectors.toSet()))));
+                        allEventDefinitions.stream().map(EventDefinition::getAnnotation).collect(Collectors.toSet()))));
 
         // Add the qualifiers as beans
         String[] subscriberAnnotations = allEventDefinitions.stream().map(d -> d.getAnnotation().toString())
@@ -201,13 +198,12 @@ class GitHubActionProcessor {
 
         ClassOutput beanClassOutput = new GeneratedBeanGizmoAdaptor(generatedBeans);
         generatePayloadTypeResolver(beanClassOutput, reflectiveClasses, allEventDefinitions);
-        generateActionMain(beanClassOutput, combinedIndex, launchMode, dispatchingConfiguration, reflectiveClasses);
+        generateActionMain(beanClassOutput, dispatchingConfiguration, reflectiveClasses);
         generateMultiplexers(beanClassOutput, dispatchingConfiguration, reflectiveClasses);
     }
 
     private static Collection<EventDefinition> getAllEventDefinitions(IndexView index) {
         Collection<EventDefinition> mainEventDefinitions = new ArrayList<>();
-        Collection<EventDefinition> allEventDefinitions = new ArrayList<>();
 
         for (AnnotationInstance eventInstance : index.getAnnotations(EVENT)) {
             if (eventInstance.target().kind() == Kind.CLASS) {
@@ -218,7 +214,7 @@ class GitHubActionProcessor {
             }
         }
 
-        allEventDefinitions.addAll(mainEventDefinitions);
+        Collection<EventDefinition> allEventDefinitions = new ArrayList<>(mainEventDefinitions);
 
         for (EventDefinition mainEventDefinition : mainEventDefinitions) {
             for (AnnotationInstance eventInstance : index.getAnnotations(mainEventDefinition.getAnnotation())) {
@@ -243,7 +239,7 @@ class GitHubActionProcessor {
         Collection<AnnotationInstance> actionInstances = index.getAnnotations(ACTION)
                 .stream()
                 .filter(ai -> ai.target().kind() == Kind.METHOD)
-                .collect(Collectors.toList());
+                .toList();
         for (AnnotationInstance actionInstance : actionInstances) {
             String name = actionInstance.valueWithDefault(index).asString();
 
@@ -293,7 +289,7 @@ class GitHubActionProcessor {
                     .stream()
                     .filter(ai -> ai.target().kind() == Kind.METHOD_PARAMETER)
                     .filter(ai -> !ai.target().asMethodParameter().method().hasAnnotation(ACTION))
-                    .collect(Collectors.toList());
+                    .toList();
             for (AnnotationInstance eventSubscriberInstance : eventSubscriberInstances) {
                 MethodParameterInfo annotatedParameter = eventSubscriberInstance.target().asMethodParameter();
                 MethodInfo methodInfo = annotatedParameter.method();
@@ -387,7 +383,7 @@ class GitHubActionProcessor {
         payloadTypeResolverClassCreator.addAnnotation(Singleton.class);
 
         Map<String, DotName> payloadTypeMapping = eventDefinitions.stream()
-                .collect(Collectors.toMap(ed -> ed.getEvent(), ed -> ed.getPayloadType(), (ed1, ed2) -> ed1));
+                .collect(Collectors.toMap(EventDefinition::getEvent, EventDefinition::getPayloadType, (ed1, ed2) -> ed1));
 
         MethodCreator getPayloadTypeMethodCreator = payloadTypeResolverClassCreator.getMethodCreator("getPayloadType",
                 Class.class, String.class);
@@ -395,13 +391,14 @@ class GitHubActionProcessor {
         ResultHandle eventRh = getPayloadTypeMethodCreator.getMethodParam(0);
 
         for (Entry<String, DotName> payloadTypeMappingEntry : payloadTypeMapping.entrySet()) {
-            BytecodeCreator matches = getPayloadTypeMethodCreator.ifTrue(getPayloadTypeMethodCreator.invokeVirtualMethod(
-                    MethodDescriptors.OBJECT_EQUALS, getPayloadTypeMethodCreator.load(payloadTypeMappingEntry.getKey()),
-                    eventRh))
+            BytecodeCreator matches = getPayloadTypeMethodCreator.ifTrue(
+                    getPayloadTypeMethodCreator.invokeVirtualMethod(
+                            MethodDescriptors.OBJECT_EQUALS,
+                            getPayloadTypeMethodCreator.load(payloadTypeMappingEntry.getKey()),
+                            eventRh))
                     .trueBranch();
             matches.returnValue(matches.loadClass(payloadTypeMappingEntry.getValue().toString()));
         }
-
         getPayloadTypeMethodCreator.returnValue(getPayloadTypeMethodCreator.loadNull());
 
         payloadTypeResolverClassCreator.close();
@@ -413,8 +410,6 @@ class GitHubActionProcessor {
      * It emits the GitHub events as CDI events that will then be caught by the multiplexers.
      */
     private static void generateActionMain(ClassOutput beanClassOutput,
-            CombinedIndexBuildItem combinedIndex,
-            LaunchModeBuildItem launchMode,
             DispatchingConfiguration dispatchingConfiguration,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
         String gitHubEventHandlerClassName = GitHubEventHandler.class.getName() + "Impl";
@@ -460,7 +455,7 @@ class GitHubActionProcessor {
 
             ResultHandle actionAnnotationLiteralRh = nameMatchesCreator.newInstance(MethodDescriptor
                     .ofConstructor(ActionLiteral.class, String.class),
-                    new ResultHandle[] { nameMatchesCreator.load(name) });
+                    nameMatchesCreator.load(name));
 
             for (Entry<String, ActionDispatchingConfiguration> eventConfigurationEntry : actionConfiguration.entrySet()) {
                 String event = eventConfigurationEntry.getKey();
@@ -575,7 +570,7 @@ class GitHubActionProcessor {
                         originalConstructor.parameterTypes().stream().map(t -> t.name().toString()).toArray(String[]::new)));
 
                 List<AnnotationInstance> originalMethodAnnotations = originalConstructor.annotations().stream()
-                        .filter(ai -> ai.target().kind() == Kind.METHOD).collect(Collectors.toList());
+                        .filter(ai -> ai.target().kind() == Kind.METHOD).toList();
                 for (AnnotationInstance originalMethodAnnotation : originalMethodAnnotations) {
                     constructorCreator.addAnnotation(originalMethodAnnotation);
                 }
@@ -662,7 +657,7 @@ class GitHubActionProcessor {
 
                 MethodCreator methodCreator = multiplexerClassCreator.getMethodCreator(
                         originalMethod.name() + "_"
-                                + HashUtil.sha1(originalMethod.toString() + "_" + (eventSubscriberInstance != null
+                                + HashUtil.sha1(originalMethod + "_" + (eventSubscriberInstance != null
                                         ? eventSubscriberInstance.toString()
                                         : EventDefinition.ALL)),
                         originalMethod.returnType().name().toString(),
@@ -726,7 +721,9 @@ class GitHubActionProcessor {
                                 gitHubEventRh);
                     } else if (parameterAnnotations.stream().anyMatch(ai -> ai.name().equals(CONFIG_FILE))) {
                         AnnotationInstance configFileAnnotationInstance = parameterAnnotations.stream()
-                                .filter(ai -> ai.name().equals(CONFIG_FILE)).findFirst().get();
+                                .filter(ai -> ai.name().equals(CONFIG_FILE))
+                                .findFirst()
+                                .orElseThrow(() -> new AssertionError("ConfigFile annotation not present"));
                         String configObjectType = originalMethodParameterTypes.get(originalMethodParameterIndex).name()
                                 .toString();
 

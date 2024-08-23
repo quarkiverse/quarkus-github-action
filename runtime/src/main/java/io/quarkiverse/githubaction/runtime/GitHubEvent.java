@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.kohsuke.github.GHEventPayload;
+import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 
@@ -15,8 +16,8 @@ import io.quarkiverse.githubaction.Inputs;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClient;
 import io.smallrye.graphql.client.dynamic.api.DynamicGraphQLClientBuilder;
 
+@SuppressWarnings("unused")
 public class GitHubEvent {
-
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String AUTHORIZATION_HEADER_BEARER = "Bearer %s";
 
@@ -32,6 +33,7 @@ public class GitHubEvent {
 
     private volatile GitHub gitHubClient;
     private volatile DynamicGraphQLClient gitHubGraphQLClient;
+    private volatile GHRepository gitHubRepository;
 
     GitHubEvent(String name, Context context, String eventAction,
             Inputs inputs, Commands commands,
@@ -136,14 +138,15 @@ public class GitHubEvent {
                                 .build();
 
                         // this call is probably - it's not documented - not counted in the rate limit
-                        localGitHubGraphQLClient.executeSync("query {\n" +
-                                "rateLimit {\n" +
-                                "    limit\n" +
-                                "    cost\n" +
-                                "    remaining\n" +
-                                "    resetAt\n" +
-                                "  }\n" +
-                                "}");
+                        localGitHubGraphQLClient.executeSync("""
+                                query {
+                                  rateLimit {
+                                    limit
+                                    cost
+                                    remaining
+                                    resetAt
+                                  }
+                                }""");
                     } catch (Exception e) {
                         throw new IllegalStateException("Unable to initialize the GitHub GraphQL client, is the token valid?",
                                 e);
@@ -153,5 +156,30 @@ public class GitHubEvent {
         }
 
         return localGitHubGraphQLClient;
+    }
+
+    public GHRepository getGHRepository() {
+        GHRepository localGitHubRepository = gitHubRepository;
+        if (localGitHubRepository == null) {
+            synchronized (this) {
+                if (gitHubRepository == null) {
+                    gitHubRepository = localGitHubRepository = createGHRepository(getGitHub(), context.getGitHubRepository());
+                }
+            }
+        }
+        return localGitHubRepository;
+    }
+
+    private static GHRepository createGHRepository(GitHub gitHub, String repositoryName) {
+        if (gitHub.isOffline()) {
+            throw new IllegalStateException(
+                    "The GitHub REST client is offline, unable to inject the repository '%s'".formatted(repositoryName));
+        }
+
+        try {
+            return gitHub.getRepository(repositoryName);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Unable to access repository '%s'".formatted(repositoryName), ex);
+        }
     }
 }
