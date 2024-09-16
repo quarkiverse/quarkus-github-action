@@ -22,7 +22,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <quarkus.version>3.13.2</quarkus.version>
+        <quarkus.version>3.14.4</quarkus.version>
         <jandex-plugin.version>3.2.2</jandex-plugin.version>
 
         <quarkus-github-api.version>1.322.0</quarkus-github-api.version>
