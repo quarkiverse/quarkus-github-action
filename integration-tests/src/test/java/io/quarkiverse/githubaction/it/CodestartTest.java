@@ -28,6 +28,7 @@ public class CodestartTest {
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, ".github/dependabot.yml");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, ".github/workflows/ci.yml");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, ".github/workflows/publish-action-artifact.yml");
+        codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, ".github/workflows/release.yml");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, "src/main/resources/application.properties");
     }
 
