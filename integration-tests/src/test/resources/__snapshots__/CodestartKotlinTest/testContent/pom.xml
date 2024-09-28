@@ -7,17 +7,30 @@
     <name>My action name</name>
     <description>My action description</description>
 
+    <scm>
+        <connection>scm:git:https://github.com/your-org/your-repository.git</connection>
+        <developerConnection>scm:git:https://github.com/your-org/your-repository.git</developerConnection>
+        <url>https://github.com/your-org/your-repository</url>
+    </scm>
+
     <properties>
+        <build-helper-plugin.version>3.6.0</build-helper-plugin.version>
         <compiler-plugin.version>3.8.1-MOCK</compiler-plugin.version>
+        <deploy-plugin.version>3.1.3</deploy-plugin.version>
+        <exec-plugin.version>3.4.1</exec-plugin.version>
+        <flatten-plugin.version>1.6.0</flatten-plugin.version>
         <kotlin.version>1.4.28-MOCK</kotlin.version>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.next.version>1.0.0</project.next.version>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-mock-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>999-MOCK</quarkus.platform.version>
+        <release-plugin.version>3.1.1</release-plugin.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.0.0-MOCK</surefire-plugin.version>
+        <versions-plugin.version>2.17.1</versions-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -65,6 +78,38 @@
     <build>
         <sourceDirectory>src/main/kotlin</sourceDirectory>
         <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>${flatten-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${deploy-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>${release-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build-helper-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>${versions-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${exec-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>${quarkus.platform.group-id}</groupId>
@@ -175,18 +220,11 @@
         </profile>
         <profile>
             <id>flatten</id>
-            <activation>
-                <property>
-                    <name>quarkus.package.type</name>
-                    <value>uber-jar</value>
-                </property>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>flatten-maven-plugin</artifactId>
-                        <version>1.6.0</version>
                         <executions>
                             <execution>
                                 <id>flatten</id>
@@ -218,6 +256,10 @@
                     </plugin>
                 </plugins>
             </build>
+            <properties>
+                <quarkus.package.jar.add-runner-suffix>false</quarkus.package.jar.add-runner-suffix>
+                <quarkus.package.jar.type>uber-jar</quarkus.package.jar.type>
+            </properties>
         </profile>
         <profile>
             <id>github-action</id>
@@ -226,6 +268,109 @@
                     <name>env.GITHUB_REPOSITORY</name>
                 </property>
             </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <configuration>
+                            <preparationGoals>exec:exec@action-replace-version
+                                exec:exec@git-add-action
+                                build-helper:parse-version@parse-version
+                                versions:set-property@next-incremental-version</preparationGoals>
+                            <releaseProfiles>flatten</releaseProfiles>
+                            <releaseVersion>${project.next.version}</releaseVersion>
+                            <tagNameFormat>v@{project.version}</tagNameFormat>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>parse-version</id>
+                                <goals>
+                                    <goal>parse-version</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>parse-next-version</id>
+                                <goals>
+                                    <goal>parse-version</goal>
+                                </goals>
+                                <configuration>
+                                    <versionString>${project.next.version}</versionString>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>versions-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>next-minor-version</id>
+                                <goals>
+                                    <goal>set-property</goal>
+                                </goals>
+                                <configuration>
+                                    <property>project.next.version</property>
+                                    <newVersion>${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0</newVersion>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>next-incremental-version</id>
+                                <goals>
+                                    <goal>set-property</goal>
+                                </goals>
+                                <configuration>
+                                    <property>project.next.version</property>
+                                    <newVersion>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}</newVersion>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>action-replace-version</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>sed</executable>
+                                    <arguments>
+                                        <argument>-i</argument>
+                                        <argument>-e</argument>
+                                        <argument>/^ *run: jbang/ s/:\([^:]*\)$/:${project.version}/</argument>
+                                        <argument>action.yml</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>git-add-action</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>git</executable>
+                                    <arguments>
+                                        <argument>add</argument>
+                                        <argument>action.yml</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
             <distributionManagement>
                 <repository>
                     <id>github</id>

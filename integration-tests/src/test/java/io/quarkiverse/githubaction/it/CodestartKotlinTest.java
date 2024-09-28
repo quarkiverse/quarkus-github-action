@@ -28,6 +28,7 @@ public class CodestartKotlinTest {
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, ".github/dependabot.yml");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, ".github/workflows/ci.yml");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, ".github/workflows/publish-action-artifact.yml");
+        codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, ".github/workflows/release.yml");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, "src/main/resources/application.properties");
     }
 
