@@ -33,6 +33,6 @@ jobs:
       - name: Build and publish action to Maven repository
         shell: bash
         run: |
-          ./mvnw -B clean deploy -Dquarkus.package.type=uber-jar -Dquarkus.package.add-runner-suffix=false
+          ./mvnw -B -P flatten clean deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,58 @@
+name: Release new version
+
+on:
+  push:
+    branches:
+      - releases/**
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: maven
+
+      - name: Configure Git author
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Release new version
+        run: |
+          ./mvnw -B release:prepare release:perform
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set major tag
+        run: |
+          git tag -f $(git describe --tags | cut -d . -f 1) tags/$(git describe --tags --abbrev=0)
+          git push --tags --force
+
+      - name: Set next release version
+        run: |
+          [[ "${{ github.event.created }}" = false ]] && exit 0
+          git fetch origin main:main --depth=1
+          git switch main
+          ./mvnw -B build-helper:parse-version@parse-next-version versions:set-property@next-minor-version
+          git add pom.xml
+          git commit -m '[release action] prepare for next development iteration'
+          git push origin main
