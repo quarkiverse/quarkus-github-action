@@ -4,3 +4,4 @@ workflows/
 workflows/ci.yml
 workflows/publish-action-artifact.yml
 workflows/publish-docker-image.yml.disabled
+workflows/release.yml
