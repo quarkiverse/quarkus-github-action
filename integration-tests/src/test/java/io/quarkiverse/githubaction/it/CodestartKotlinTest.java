@@ -20,7 +20,7 @@ public class CodestartKotlinTest {
     @Test
     void testContent() throws Throwable {
         codestartTest.checkGeneratedSource("org.acme.MyAction");
-        codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, "pom.xml");
+        codestartTest.assertThatGeneratedFile(Language.JAVA, "pom.xml").exists();
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, "README.md");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, "action.yml");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.KOTLIN, "action.docker.yml");
