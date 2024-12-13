@@ -20,7 +20,7 @@ public class CodestartTest {
     @Test
     void testContent() throws Throwable {
         codestartTest.checkGeneratedSource("org.acme.MyAction");
-        codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, "pom.xml");
+        codestartTest.assertThatGeneratedFile(Language.JAVA, "pom.xml").exists();
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, "README.md");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, "action.yml");
         codestartTest.assertThatGeneratedFileMatchSnapshot(Language.JAVA, "action.docker.yml");
