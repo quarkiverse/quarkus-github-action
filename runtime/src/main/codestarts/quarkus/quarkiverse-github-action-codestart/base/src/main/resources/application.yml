@@ -1,5 +1,7 @@
 quarkus:
   log:
-    level: SEVERE
+    category:
+      "io.quarkus":
+        level: WARN
   banner:
     enabled: false
