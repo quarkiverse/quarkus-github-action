@@ -5,7 +5,7 @@
             <id>flatten</id>
             <activation>
                 <property>
-                    <name>quarkus.package.type</name>
+                    <name>quarkus.package.jar.type</name>
                     <value>uber-jar</value>
                 </property>
             </activation>
