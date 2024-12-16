@@ -27,6 +27,4 @@ jobs:
 
       - name: Build
         run: |
-          # if the repository has been initialized with Windows, we need to set the permissions here
-          chmod 755 ./mvnw
           ./mvnw -B clean verify -Dquarkus.package.type=uber-jar -Dquarkus.package.add-runner-suffix=false

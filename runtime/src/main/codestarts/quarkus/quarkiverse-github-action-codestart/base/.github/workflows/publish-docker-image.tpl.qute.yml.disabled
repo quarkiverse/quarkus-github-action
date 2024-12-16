@@ -39,8 +39,6 @@ jobs:
 
       - name: Build native image
         run: |
-          # if the repository has been initialized with Windows, we need to set the permissions here
-          chmod 755 ./mvnw
           ./mvnw -B clean package -Dnative
 
       - name: Log in to the Container registry

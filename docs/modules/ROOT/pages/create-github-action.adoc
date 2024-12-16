@@ -110,12 +110,14 @@ The next step is to push your GitHub Action to its GitHub repository (GitHub des
 ----
 git init
 git add .
+git update-index --chmod=+x mvnw <1>
 git commit -m "Init the project"
 git branch -M main
-git remote add origin git@github.com:my/action-github-repository.git <1>
+git remote add origin git@github.com:my/action-github-repository.git <2>
 git push -u origin main
 ----
-<1> Replace `my/action-github-repository` with the full name of the repository you created to host the GitHub Action.
+<1> Make sure `mvnw` is executable, even if the project is initialized on Windows.
+<2> Replace `my/action-github-repository` with the full name of the repository you created to host the GitHub Action.
 
 [WARNING]
 ====

@@ -36,6 +36,4 @@ jobs:
      {/if}
       - name: Build
         run: |
-          # if the repository has been initialized with Windows, we need to set the permissions here
-          chmod 755 ./mvnw
           {buildtool.cli} {buildtool.cmd.build-ci}

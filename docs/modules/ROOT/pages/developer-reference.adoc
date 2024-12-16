@@ -196,6 +196,23 @@ For instance, you can set output variables, attach a job summary...
 All these commands are made available through a `io.quarkiverse.githubaction.Commands` instance,
 that you can inject into your action methods.
 
+==== Logging
+
+While you can use standard Java logging, using `Commands` log facilities may be more practical
+as the logging appears in the job summary:
+
+image::developer-reference/commands-logging-log.png[Logging in log]
+
+image::developer-reference/commands-logging-job-summary.png[Logging in job summary]
+
+`Commands` exposes the `debug()`, `notice()`, `warning()`, and `error()` methods.
+
+[TIP]
+====
+For `debug()`, see https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging[Enabling debug logging]
+for more information about how to enable the debug output when your actions are executed.
+====
+
 ==== Outputs
 
 Outputs are an important part of GitHub Actions.
