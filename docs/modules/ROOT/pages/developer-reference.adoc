@@ -394,7 +394,7 @@ If the path is absolute, the file is searched from the root of the repository.
 [source,java]
 ----
     @Action
-    void action(@ConfigFile("example-config-file.yml") ConfigFileBean configFileBean) { <1>
+    void action(@ConfigFile("example-config-file.yml") ConfigFileBean configFileBean) { <1> <2>
         System.out.println("Value 1: " + configFileBean.value1);
         System.out.println("Value 2: " + configFileBean.value2);
     }
@@ -407,6 +407,7 @@ If the path is absolute, the file is searched from the root of the repository.
     }
 ----
 <1> Read `.github/example-config-file.yml` from the default branch of the repository and inject the values into `ConfigFileBean` via Jackson deserialization.
+<2> If `.github/example-config-file.yml` does not exist in the repository, `configFileBean` is `null`.
 
 === GHRepository
 
