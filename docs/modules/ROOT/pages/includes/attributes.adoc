@@ -1,2 +1,2 @@
-:quarkus-version: 3.18.2
-:quarkus-github-action-version: 2.5.1
+:quarkus-version: 3.21.3
+:quarkus-github-action-version: 2.6.0
