@@ -1,0 +1,116 @@
+[.configuration-legend]
+icon:lock[title=Fixed at build time] Configuration property fixed at build time - All other configuration properties are overridable at runtime
+[.configuration-reference.searchable, cols="80,.^10,.^10"]
+|===
+
+h|[.header-title]##Configuration property##
+h|Type
+h|Default
+
+a|icon:lock[title=Fixed at build time] [[quarkus-github-action_quarkus-github-actions-workflow-name]] [.property-path]##link:#quarkus-github-action_quarkus-github-actions-workflow-name[`quarkus.github-actions.workflow.name`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.github-actions.workflow.name+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The generated workflow name.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_NAME+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_NAME+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`build`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-github-action_quarkus-github-actions-workflow-runner]] [.property-path]##link:#quarkus-github-action_quarkus-github-actions-workflow-runner[`quarkus.github-actions.workflow.runner`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.github-actions.workflow.runner+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The generated workflow runner
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_RUNNER+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_RUNNER+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`ubuntu-latest`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-github-action_quarkus-github-actions-workflow-generation-enabled]] [.property-path]##link:#quarkus-github-action_quarkus-github-actions-workflow-generation-enabled[`quarkus.github-actions.workflow.generation.enabled`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.github-actions.workflow.generation.enabled+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+Whether to enable the github action generation at build time.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_GENERATION_ENABLED+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_GENERATION_ENABLED+++`
+endif::add-copy-button-to-env-var[]
+--
+|boolean
+|`false`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-github-action_quarkus-github-actions-workflow-jdk-distribution]] [.property-path]##link:#quarkus-github-action_quarkus-github-actions-workflow-jdk-distribution[`quarkus.github-actions.workflow.jdk.distribution`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.github-actions.workflow.jdk.distribution+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The JDK distribution to use.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_JDK_DISTRIBUTION+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_JDK_DISTRIBUTION+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|`adopt`
+
+a|icon:lock[title=Fixed at build time] [[quarkus-github-action_quarkus-github-actions-workflow-jdk-version]] [.property-path]##link:#quarkus-github-action_quarkus-github-actions-workflow-jdk-version[`quarkus.github-actions.workflow.jdk.version`]##
+ifdef::add-copy-button-to-config-props[]
+config_property_copy_button:+++quarkus.github-actions.workflow.jdk.version+++[]
+endif::add-copy-button-to-config-props[]
+
+
+[.description]
+--
+The JDK version to use.
+
+
+ifdef::add-copy-button-to-env-var[]
+Environment variable: env_var_with_copy_button:+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_JDK_VERSION+++[]
+endif::add-copy-button-to-env-var[]
+ifndef::add-copy-button-to-env-var[]
+Environment variable: `+++QUARKUS_GITHUB_ACTIONS_WORKFLOW_JDK_VERSION+++`
+endif::add-copy-button-to-env-var[]
+--
+|string
+|
+
+|===
+

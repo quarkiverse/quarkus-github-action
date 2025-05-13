@@ -3,3 +3,4 @@
 * xref:developer-reference.adoc[Developer reference]
 * xref:testing.adoc[Testing]
 * xref:push-to-production.adoc[Push to production]
+* xref:generating-workflows.adoc[Generating Workflows]

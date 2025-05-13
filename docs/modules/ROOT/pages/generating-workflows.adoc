@@ -1,0 +1,31 @@
+= Generating Github Action Workflows
+
+include::./includes/attributes.adoc[]
+
+== Overview
+
+It is often desirable to either generate a new workflow or update an existing one.
+This project provides a CLI that can be used for this purpose.
+More specifically, it can (re)generate a simple worklflow you can use when pushing 
+to a branch and / or when creating a pull request, that:
+
+- is aligned to the jdk version you are using.
+- is aligned to the build tool you are using (e.g. Maven or Gradle)
+
+== Installation
+
+The CLI plugin is installable to all Quarkus projects using the `quarkus-github-action-workflow-generator` extension.
+However, it can also be used even without the extension. In this case, the CLI plugin needs to be added manually.
+
+[source,shell]
+----
+quarkus plug add io.quarkiverse.githubaction:quarkus-github-action-cli:<version>
+----
+
+
+image::install-backstage-cli-plugin.gif[width=1000,align="center"]
+
+== Using the CLI
+
+The CLI plugin provides the `quarkus github-action generate` command.
+When the command is executed, it will generate a workflow file in the `.github/workflows` directory.
