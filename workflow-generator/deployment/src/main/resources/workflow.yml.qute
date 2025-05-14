@@ -1,0 +1,31 @@
+name: {name}
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+env:
+  LANG: en_US.UTF-8
+jobs:
+  build-test:
+    name: "{jobName}"
+    runs-on: {runner}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: '{jdkDistribution}'
+          java-version: '{jdkVersion}'
+      - name: Artifact Cache Repository
+        id: artifact-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('{hashFiles}') }}
+      - name: Build
+        run: |
+          {buildCommand}
+      - name: Test
+        run: |
+          {testCommand}
