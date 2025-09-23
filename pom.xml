@@ -27,7 +27,7 @@
         <quarkus-github-api.version>1.330.0</quarkus-github-api.version>
         <quarkus-github-app.version>2.11.0</quarkus-github-app.version>
 
-        <assertj.version>3.27.4</assertj.version>
+        <assertj.version>3.27.6</assertj.version>
     </properties>
     <dependencyManagement>
         <dependencies>
