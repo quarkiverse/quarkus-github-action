@@ -44,7 +44,7 @@ class DispatchingConfiguration {
     List<ActionDispatchingConfiguration> getActionDispatchingConfigurations() {
         return actionConfigurations.values().stream()
                 .flatMap(innerMap -> innerMap.values().stream())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     void addActionDispatchingMethod(ActionDispatchingMethod actionDispatchingMethod) {
