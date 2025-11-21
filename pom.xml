@@ -22,7 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.version>3.26.2</quarkus.version>
-        <jandex-plugin.version>3.5.0</jandex-plugin.version>
+        <jandex-plugin.version>3.5.2</jandex-plugin.version>
 
         <quarkus-github-api.version>1.330.0</quarkus-github-api.version>
         <quarkus-github-app.version>2.12.2</quarkus-github-app.version>
