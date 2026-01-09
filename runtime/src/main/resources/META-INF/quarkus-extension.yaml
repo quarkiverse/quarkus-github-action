@@ -2,6 +2,7 @@
 artifact: ${project.groupId}:${project.artifactId}:${project.version}
 name: GitHub Action
 metadata:
+  icon-url: "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"  
   keywords:
     - github-action
     - github
