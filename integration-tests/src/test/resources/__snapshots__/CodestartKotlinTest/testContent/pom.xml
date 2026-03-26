@@ -16,6 +16,8 @@
         <quarkus.platform.artifact-id>quarkus-mock-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>999-MOCK</quarkus.platform.version>
+        <deploy-plugin.version>3.1.4</deploy-plugin.version>
+        <install-plugin.version>3.1.4</install-plugin.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.0.0-MOCK</surefire-plugin.version>
     </properties>
@@ -156,6 +158,26 @@
                         <option>all-open:annotation=io.quarkus.test.junit.QuarkusTest</option>
                     </pluginOptions>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>${install-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-install</id>
+                        <phase>install</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${deploy-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

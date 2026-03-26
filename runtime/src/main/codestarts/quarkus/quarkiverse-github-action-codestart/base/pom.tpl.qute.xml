@@ -1,5 +1,33 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <properties>
+        <install-plugin.version>3.1.4</install-plugin.version>
+        <deploy-plugin.version>3.1.4</deploy-plugin.version>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>$\{install-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-install</id>
+                        <phase>install</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>$\{deploy-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
      <profiles>
         <profile>
             <id>flatten</id>
