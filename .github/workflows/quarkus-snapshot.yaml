@@ -18,6 +18,9 @@ env:
 
   ECOSYSTEM_CI_REPO_PATH: quarkiverse-github-action
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: "Build against latest Quarkus snapshot"

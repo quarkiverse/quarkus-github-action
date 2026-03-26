@@ -23,6 +23,9 @@ on:
       - '.all-contributorsrc'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
