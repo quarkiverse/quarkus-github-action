@@ -1,4 +1,8 @@
 quarkus:
+  package:
+    jar:
+      type: uber-jar
+      add-runner-suffix: false
   log:
     category:
       "io.quarkus":
