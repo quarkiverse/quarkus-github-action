@@ -111,6 +111,9 @@
                     <execution>
                         <id>default-install</id>
                         <phase>install</phase>
+                        <goals>
+                            <goal>install</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -121,6 +124,42 @@
                     <execution>
                         <id>default-deploy</id>
                         <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.7.3</version>
+                <configuration>
+                    <pomElements>
+                        <description>keep</description>
+                        <url>keep</url>
+                        <developers>keep</developers>
+                        <scm>keep</scm>
+                        <issueManagement>keep</issueManagement>
+                        <repositories>remove</repositories>
+                        <dependencies>remove</dependencies>
+                        <build>remove</build>
+                    </pomElements>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -139,52 +178,6 @@
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
             </properties>
-        </profile>
-        <profile>
-            <id>flatten</id>
-            <activation>
-                <property>
-                    <name>quarkus.package.type</name>
-                    <value>uber-jar</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>flatten-maven-plugin</artifactId>
-                        <version>1.6.0</version>
-                        <executions>
-                            <execution>
-                                <id>flatten</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>flatten</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>flatten.clean</id>
-                                <phase>clean</phase>
-                                <goals>
-                                    <goal>clean</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <pomElements>
-                                <description>keep</description>
-                                <url>keep</url>
-                                <developers>keep</developers>
-                                <scm>keep</scm>
-                                <issueManagement>keep</issueManagement>
-                                <repositories>remove</repositories>
-                                <dependencies>remove</dependencies>
-                                <build>remove</build>
-                            </pomElements>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
         <profile>
             <id>github-action</id>
