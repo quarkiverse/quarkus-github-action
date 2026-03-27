@@ -4,12 +4,11 @@ import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.ACTION
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.CONFIG_FILE;
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.EVENT;
 import static io.quarkiverse.githubaction.deployment.GitHubActionDotNames.INJECTABLE_TYPES;
-import static io.quarkus.gizmo.Type.classType;
-import static io.quarkus.gizmo.Type.parameterizedType;
+import static org.jboss.jandex.gizmo2.Jandex2Gizmo.classDescOf;
 
-import java.io.PrintStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Modifier;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.constant.ClassDesc;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,6 +37,7 @@ import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.jandex.MethodParameterInfo;
 import org.jboss.jandex.Type;
+import org.jboss.jandex.gizmo2.Jandex2Gizmo;
 import org.jboss.logging.Logger;
 import org.kohsuke.github.GHEventPayload;
 import org.kohsuke.github.GitHub;
@@ -61,31 +61,32 @@ import io.quarkiverse.githubapp.event.Actions;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.arc.deployment.GeneratedBeanBuildItem;
-import io.quarkus.arc.deployment.GeneratedBeanGizmoAdaptor;
+import io.quarkus.arc.deployment.GeneratedBeanGizmo2Adaptor;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
-import io.quarkus.arc.processor.MethodDescriptors;
-import io.quarkus.deployment.GeneratedClassGizmoAdaptor;
+import io.quarkus.deployment.GeneratedClassGizmo2Adaptor;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedClassBuildItem;
+import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.RunTimeConfigurationDefaultBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveHierarchyBuildItem;
-import io.quarkus.gizmo.AnnotatedElement;
-import io.quarkus.gizmo.BytecodeCreator;
-import io.quarkus.gizmo.ClassCreator;
-import io.quarkus.gizmo.ClassOutput;
-import io.quarkus.gizmo.FieldCreator;
-import io.quarkus.gizmo.FieldDescriptor;
-import io.quarkus.gizmo.Gizmo;
-import io.quarkus.gizmo.MethodCreator;
-import io.quarkus.gizmo.MethodDescriptor;
-import io.quarkus.gizmo.ResultHandle;
-import io.quarkus.gizmo.SignatureBuilder;
+import io.quarkus.gizmo2.ClassOutput;
+import io.quarkus.gizmo2.Const;
+import io.quarkus.gizmo2.Expr;
+import io.quarkus.gizmo2.GenericType;
+import io.quarkus.gizmo2.Gizmo;
+import io.quarkus.gizmo2.LocalVar;
+import io.quarkus.gizmo2.ParamVar;
+import io.quarkus.gizmo2.TypeArgument;
+import io.quarkus.gizmo2.creator.BlockCreator;
+import io.quarkus.gizmo2.desc.ConstructorDesc;
+import io.quarkus.gizmo2.desc.FieldDesc;
+import io.quarkus.gizmo2.desc.MethodDesc;
 import io.quarkus.runtime.util.HashUtil;
 
 class GitHubActionProcessor {
@@ -96,17 +97,19 @@ class GitHubActionProcessor {
 
     private static final String EVENT_EMITTER_FIELD = "eventEmitter";
 
-    private static final MethodDescriptor GITHUB_EVENT_GET_NAME = MethodDescriptor.ofMethod(GitHubEvent.class, "getName",
+    private static final MethodDesc GITHUB_EVENT_GET_NAME = MethodDesc.of(GitHubEvent.class, "getName",
             String.class);
-    private static final MethodDescriptor GITHUB_EVENT_GET_EVENT = MethodDescriptor.ofMethod(GitHubEvent.class, "getEvent",
+    private static final MethodDesc GITHUB_EVENT_GET_EVENT = MethodDesc.of(GitHubEvent.class, "getEvent",
             String.class);
-    private static final MethodDescriptor GITHUB_EVENT_GET_EVENT_ACTION = MethodDescriptor.ofMethod(GitHubEvent.class,
+    private static final MethodDesc GITHUB_EVENT_GET_EVENT_ACTION = MethodDesc.of(GitHubEvent.class,
             "getEventAction", String.class);
 
-    private static final MethodDescriptor EVENT_SELECT = MethodDescriptor.ofMethod(Event.class, "select", Event.class,
+    private static final MethodDesc EVENT_SELECT = MethodDesc.of(Event.class, "select", Event.class,
             Annotation[].class);
-    private static final MethodDescriptor EVENT_FIRE = MethodDescriptor.ofMethod(Event.class, "fire",
+    private static final MethodDesc EVENT_FIRE = MethodDesc.of(Event.class, "fire",
             void.class, Object.class);
+
+    private static final MethodDesc OBJECT_EQUALS = MethodDesc.of(Object.class, "equals", boolean.class, Object.class);
 
     private static final DotName WITH_BRIDGE_METHODS = DotName
             .createSimple("com.infradna.tool.bridge_method_injector.WithBridgeMethods");
@@ -175,9 +178,11 @@ class GitHubActionProcessor {
             BuildProducer<AdditionalBeanBuildItem> additionalBeans,
             BuildProducer<GeneratedBeanBuildItem> generatedBeans,
             BuildProducer<GeneratedClassBuildItem> generatedClasses,
+            BuildProducer<GeneratedResourceBuildItem> generatedResources,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClasses,
             BuildProducer<AnnotationsTransformerBuildItem> annotationsTransformer) {
-        Collection<EventDefinition> allEventDefinitions = getAllEventDefinitions(combinedIndex.getIndex());
+        IndexView index = combinedIndex.getIndex();
+        Collection<EventDefinition> allEventDefinitions = getAllEventDefinitions(index);
 
         // Add @Vetoed to all the user-defined event listening classes
         annotationsTransformer
@@ -191,15 +196,15 @@ class GitHubActionProcessor {
         additionalBeans.produce(new AdditionalBeanBuildItem(Action.class));
 
         DispatchingConfiguration dispatchingConfiguration = getDispatchingConfiguration(
-                combinedIndex.getIndex(), allEventDefinitions);
+                index, allEventDefinitions);
 
-        ClassOutput classOutput = new GeneratedClassGizmoAdaptor(generatedClasses, true);
+        ClassOutput classOutput = new GeneratedClassGizmo2Adaptor(generatedClasses, generatedResources, true);
         generateAnnotationLiterals(classOutput, dispatchingConfiguration);
 
-        ClassOutput beanClassOutput = new GeneratedBeanGizmoAdaptor(generatedBeans);
+        ClassOutput beanClassOutput = new GeneratedBeanGizmo2Adaptor(generatedBeans);
         generatePayloadTypeResolver(beanClassOutput, reflectiveClasses, allEventDefinitions);
         generateActionMain(beanClassOutput, dispatchingConfiguration, reflectiveClasses);
-        generateMultiplexers(beanClassOutput, dispatchingConfiguration, reflectiveClasses);
+        generateMultiplexers(beanClassOutput, index, dispatchingConfiguration, reflectiveClasses);
     }
 
     private static Collection<EventDefinition> getAllEventDefinitions(IndexView index) {
@@ -324,48 +329,57 @@ class GitHubActionProcessor {
                 .flatMap(c -> c.getEventAnnotationLiterals().stream())
                 .collect(Collectors.toSet());
 
+        Gizmo gizmo = Gizmo.create(classOutput).withDebugInfo(false).withParameters(false);
+
         for (EventAnnotationLiteral eventAnnotationLiteral : eventAnnotationLiterals) {
             String literalClassName = getLiteralClassName(eventAnnotationLiteral.getName());
 
-            String signature = SignatureBuilder.forClass()
-                    .setSuperClass(parameterizedType(classType(AnnotationLiteral.class),
-                            classType(eventAnnotationLiteral.getName())))
-                    .addInterface(classType(eventAnnotationLiteral.getName()))
-                    .build();
+            gizmo.class_(literalClassName, cc -> {
+                cc.extends_(GenericType.ofClass(AnnotationLiteral.class,
+                        TypeArgument.of(classDescOf(eventAnnotationLiteral.getName()))));
+                cc.implements_(classDescOf(eventAnnotationLiteral.getName()));
 
-            ClassCreator literalClassCreator = ClassCreator.builder().classOutput(classOutput)
-                    .className(literalClassName)
-                    .signature(signature)
-                    .superClass(AnnotationLiteral.class)
-                    .interfaces(eventAnnotationLiteral.getName().toString())
-                    .build();
+                List<String> attributes = eventAnnotationLiteral.getAttributes();
 
-            Class<?>[] parameterTypes = new Class<?>[eventAnnotationLiteral.getAttributes().size()];
-            Arrays.fill(parameterTypes, String.class);
+                // Create instance fields for attributes and collect their descriptors
+                List<FieldDesc> attributeFields = new ArrayList<>();
+                for (String attribute : attributes) {
+                    FieldDesc fieldDesc = cc.field(attribute, fc -> {
+                        fc.setType(String.class);
+                        fc.private_();
+                    });
+                    attributeFields.add(fieldDesc);
+                }
 
-            MethodCreator constructorCreator = literalClassCreator.getMethodCreator("<init>", "V",
-                    (Object[]) parameterTypes);
-            constructorCreator.invokeSpecialMethod(MethodDescriptor.ofConstructor(AnnotationLiteral.class),
-                    constructorCreator.getThis());
-            for (int i = 0; i < eventAnnotationLiteral.getAttributes().size(); i++) {
-                constructorCreator.writeInstanceField(
-                        FieldDescriptor.of(literalClassName, eventAnnotationLiteral.getAttributes().get(i), String.class),
-                        constructorCreator.getThis(), constructorCreator.getMethodParam(i));
-                constructorCreator.setModifiers(Modifier.PUBLIC);
-            }
-            constructorCreator.returnValue(null);
+                // Create constructor
+                cc.constructor(constr -> {
+                    constr.public_();
+                    List<ParamVar> params = new ArrayList<>();
+                    for (int i = 0; i < attributes.size(); i++) {
+                        params.add(constr.parameter("param" + i, String.class));
+                    }
+                    constr.body(bc -> {
+                        bc.invokeSpecial(ConstructorDesc.of(AnnotationLiteral.class), cc.this_());
+                        for (int i = 0; i < attributes.size(); i++) {
+                            bc.set(cc.this_().field(attributeFields.get(i)), params.get(i));
+                        }
+                        bc.return_();
+                    });
+                });
 
-            for (String attribute : eventAnnotationLiteral.getAttributes()) {
-                // we only support String for now
-                literalClassCreator.getFieldCreator(attribute, String.class)
-                        .setModifiers(Modifier.PRIVATE);
-                MethodCreator getterCreator = literalClassCreator.getMethodCreator(attribute, String.class);
-                getterCreator.setModifiers(Modifier.PUBLIC);
-                getterCreator.returnValue(getterCreator.readInstanceField(
-                        FieldDescriptor.of(literalClassName, attribute, String.class), getterCreator.getThis()));
-            }
-
-            literalClassCreator.close();
+                // Create getter methods
+                for (int i = 0; i < attributes.size(); i++) {
+                    String attribute = attributes.get(i);
+                    FieldDesc fieldDesc = attributeFields.get(i);
+                    cc.method(attribute, mc -> {
+                        mc.public_();
+                        mc.returning(String.class);
+                        mc.body(bc -> {
+                            bc.return_(cc.this_().field(fieldDesc));
+                        });
+                    });
+                }
+            });
         }
     }
 
@@ -377,33 +391,34 @@ class GitHubActionProcessor {
         reflectiveClasses.produce(ReflectiveClassBuildItem.builder(payloadTypeResolverClassName)
                 .constructors().methods().fields().build());
 
-        ClassCreator payloadTypeResolverClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
-                .className(payloadTypeResolverClassName)
-                .interfaces(PayloadTypeResolver.class)
-                .build();
-
-        payloadTypeResolverClassCreator.addAnnotation(Singleton.class);
-
         Map<String, DotName> payloadTypeMapping = eventDefinitions.stream()
                 .collect(Collectors.toMap(EventDefinition::getEvent, EventDefinition::getPayloadType, (ed1, ed2) -> ed1));
 
-        MethodCreator getPayloadTypeMethodCreator = payloadTypeResolverClassCreator.getMethodCreator("getPayloadType",
-                Class.class, String.class);
+        Gizmo gizmo = Gizmo.create(beanClassOutput).withDebugInfo(false).withParameters(false);
 
-        ResultHandle eventRh = getPayloadTypeMethodCreator.getMethodParam(0);
+        gizmo.class_(payloadTypeResolverClassName, cc -> {
+            cc.implements_(PayloadTypeResolver.class);
+            cc.addAnnotation(Singleton.class);
+            cc.defaultConstructor();
 
-        for (Entry<String, DotName> payloadTypeMappingEntry : payloadTypeMapping.entrySet()) {
-            BytecodeCreator matches = getPayloadTypeMethodCreator.ifTrue(
-                    getPayloadTypeMethodCreator.invokeVirtualMethod(
-                            MethodDescriptors.OBJECT_EQUALS,
-                            getPayloadTypeMethodCreator.load(payloadTypeMappingEntry.getKey()),
-                            eventRh))
-                    .trueBranch();
-            matches.returnValue(matches.loadClass(payloadTypeMappingEntry.getValue().toString()));
-        }
-        getPayloadTypeMethodCreator.returnValue(getPayloadTypeMethodCreator.loadNull());
+            cc.method("getPayloadType", mc -> {
+                mc.public_();
+                mc.returning(Class.class);
+                ParamVar eventParam = mc.parameter("event", String.class);
 
-        payloadTypeResolverClassCreator.close();
+                mc.body(bc -> {
+                    for (Entry<String, DotName> payloadTypeMappingEntry : payloadTypeMapping.entrySet()) {
+                        bc.if_(bc.invokeVirtual(OBJECT_EQUALS,
+                                Const.of(payloadTypeMappingEntry.getKey()),
+                                eventParam),
+                                b -> {
+                                    b.return_(Const.of(ClassDesc.of(payloadTypeMappingEntry.getValue().toString())));
+                                });
+                    }
+                    bc.return_(Const.ofNull(Class.class));
+                });
+            });
+        });
     }
 
     /**
@@ -419,104 +434,131 @@ class GitHubActionProcessor {
         reflectiveClasses.produce(ReflectiveClassBuildItem.builder(gitHubEventHandlerClassName)
                 .constructors().methods().fields().build());
 
-        ClassCreator gitHubEventHandlerClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
-                .className(gitHubEventHandlerClassName)
-                .interfaces(GitHubEventHandler.class)
-                .build();
-        gitHubEventHandlerClassCreator.addAnnotation(Singleton.class);
+        Gizmo gizmo = Gizmo.create(beanClassOutput).withDebugInfo(false).withParameters(false);
 
-        FieldCreator eventFieldCreator = gitHubEventHandlerClassCreator.getFieldCreator(EVENT_EMITTER_FIELD, Event.class);
-        eventFieldCreator.addAnnotation(Inject.class);
-        eventFieldCreator.setModifiers(Modifier.PROTECTED);
-        eventFieldCreator.setSignature(SignatureBuilder.forField()
-                .setType(parameterizedType(classType(Event.class), classType(GitHubEvent.class)))
-                .build());
+        gizmo.class_(gitHubEventHandlerClassName, cc -> {
+            cc.implements_(GitHubEventHandler.class);
+            cc.addAnnotation(Singleton.class);
+            cc.defaultConstructor();
 
-        MethodCreator handleMethodCreator = gitHubEventHandlerClassCreator.getMethodCreator(
-                "handle",
-                void.class,
-                GitHubEvent.class);
-        handleMethodCreator.setModifiers(Modifier.PUBLIC);
+            cc.field(EVENT_EMITTER_FIELD, fc -> {
+                fc.setType(GenericType.ofClass(Event.class,
+                        TypeArgument.of(GitHubEvent.class)));
+                fc.addAnnotation(Inject.class);
+                fc.protected_();
+            });
 
-        ResultHandle gitHubEventRh = handleMethodCreator.getMethodParam(0);
-        ResultHandle dispatchedNameRh = handleMethodCreator.invokeVirtualMethod(GITHUB_EVENT_GET_NAME, gitHubEventRh);
-        ResultHandle dispatchedEventRh = handleMethodCreator.invokeVirtualMethod(GITHUB_EVENT_GET_EVENT, gitHubEventRh);
-        ResultHandle dispatchedActionRh = handleMethodCreator.invokeVirtualMethod(GITHUB_EVENT_GET_EVENT_ACTION,
-                gitHubEventRh);
+            cc.method("handle", mc -> {
+                mc.public_();
+                mc.returning(void.class);
+                ParamVar gitHubEventParam = mc.parameter("gitHubEvent", GitHubEvent.class);
 
-        for (Entry<String, Map<String, ActionDispatchingConfiguration>> actionConfigurationEntry : dispatchingConfiguration
-                .getActionConfigurations().entrySet()) {
-            String name = actionConfigurationEntry.getKey();
-            Map<String, ActionDispatchingConfiguration> actionConfiguration = actionConfigurationEntry.getValue();
+                mc.body(b0 -> {
+                    Expr thisExpr = mc.this_();
+                    Expr gitHubEventExpr = gitHubEventParam;
 
-            BytecodeCreator nameMatchesCreator = handleMethodCreator
-                    .ifTrue(handleMethodCreator.invokeVirtualMethod(MethodDescriptors.OBJECT_EQUALS,
-                            handleMethodCreator.load(name),
-                            dispatchedNameRh))
-                    .trueBranch();
+                    LocalVar dispatchedNameVar = b0.localVar("dispatchedName", String.class,
+                            b0.invokeVirtual(GITHUB_EVENT_GET_NAME, gitHubEventExpr));
+                    LocalVar dispatchedEventVar = b0.localVar("dispatchedEvent", String.class,
+                            b0.invokeVirtual(GITHUB_EVENT_GET_EVENT, gitHubEventExpr));
+                    LocalVar dispatchedActionVar = b0.localVar("dispatchedAction", String.class,
+                            b0.invokeVirtual(GITHUB_EVENT_GET_EVENT_ACTION, gitHubEventExpr));
 
-            ResultHandle actionAnnotationLiteralRh = nameMatchesCreator.newInstance(MethodDescriptor
-                    .ofConstructor(ActionLiteral.class, String.class),
-                    nameMatchesCreator.load(name));
+                    for (Entry<String, Map<String, ActionDispatchingConfiguration>> actionConfigurationEntry : dispatchingConfiguration
+                            .getActionConfigurations().entrySet()) {
+                        String name = actionConfigurationEntry.getKey();
+                        Map<String, ActionDispatchingConfiguration> actionConfiguration = actionConfigurationEntry.getValue();
 
-            for (Entry<String, ActionDispatchingConfiguration> eventConfigurationEntry : actionConfiguration.entrySet()) {
-                String event = eventConfigurationEntry.getKey();
-                ActionDispatchingConfiguration eventDispatchingConfiguration = eventConfigurationEntry.getValue();
+                        b0.if_(b0.invokeVirtual(OBJECT_EQUALS,
+                                Const.of(name),
+                                dispatchedNameVar),
+                                nameMatchesBlock -> {
 
-                if (EventDefinition.ALL.equals(event)) {
-                    ResultHandle annotationLiteralArrayRh = nameMatchesCreator.newArray(Annotation.class, 1);
-                    nameMatchesCreator.writeArrayValue(annotationLiteralArrayRh, 0, actionAnnotationLiteralRh);
+                                    LocalVar actionAnnotationLiteralVar = nameMatchesBlock.localVar(
+                                            "actionAnnotationLiteral", ActionLiteral.class,
+                                            nameMatchesBlock.new_(
+                                                    ConstructorDesc.of(ActionLiteral.class, String.class),
+                                                    Const.of(name)));
 
-                    fireEvent(nameMatchesCreator, gitHubEventHandlerClassCreator.getClassName(),
-                            gitHubEventRh, annotationLiteralArrayRh);
+                                    for (Entry<String, ActionDispatchingConfiguration> eventConfigurationEntry : actionConfiguration
+                                            .entrySet()) {
+                                        String event = eventConfigurationEntry.getKey();
+                                        ActionDispatchingConfiguration eventDispatchingConfiguration = eventConfigurationEntry
+                                                .getValue();
 
-                    continue;
-                }
+                                        if (EventDefinition.ALL.equals(event)) {
+                                            Expr annotationLiteralArrayExpr = nameMatchesBlock.newArray(Annotation.class,
+                                                    List.of(actionAnnotationLiteralVar));
 
-                BytecodeCreator eventMatchesCreator = nameMatchesCreator
-                        .ifTrue(nameMatchesCreator.invokeVirtualMethod(MethodDescriptors.OBJECT_EQUALS,
-                                nameMatchesCreator.load(event),
-                                dispatchedEventRh))
-                        .trueBranch();
+                                            fireEvent(nameMatchesBlock, gitHubEventHandlerClassName,
+                                                    thisExpr, gitHubEventExpr, annotationLiteralArrayExpr);
 
-                for (Entry<String, EventAnnotation> eventAnnotationEntry : eventDispatchingConfiguration.getEventAnnotations()
-                        .entrySet()) {
-                    String action = eventAnnotationEntry.getKey();
-                    EventAnnotation eventAnnotation = eventAnnotationEntry.getValue();
+                                            continue;
+                                        }
 
-                    Class<?>[] literalParameterTypes = new Class<?>[eventAnnotation.getValues().size()];
-                    Arrays.fill(literalParameterTypes, String.class);
-                    List<ResultHandle> literalParameters = new ArrayList<>();
-                    for (AnnotationValue eventAnnotationValue : eventAnnotation.getValues()) {
-                        literalParameters.add(eventMatchesCreator.load(eventAnnotationValue.asString()));
+                                        nameMatchesBlock.if_(nameMatchesBlock.invokeVirtual(OBJECT_EQUALS,
+                                                Const.of(event),
+                                                dispatchedEventVar),
+                                                eventMatchesBlock -> {
+
+                                                    for (Entry<String, EventAnnotation> eventAnnotationEntry : eventDispatchingConfiguration
+                                                            .getEventAnnotations()
+                                                            .entrySet()) {
+                                                        String action = eventAnnotationEntry.getKey();
+                                                        EventAnnotation eventAnnotation = eventAnnotationEntry.getValue();
+
+                                                        ClassDesc stringClassDesc = ClassDesc.of(String.class.getName());
+                                                        ClassDesc[] literalParameterTypes = Collections
+                                                                .nCopies(eventAnnotation.getValues().size(), stringClassDesc)
+                                                                .toArray(new ClassDesc[0]);
+                                                        List<Expr> literalParameters = new ArrayList<>();
+                                                        for (AnnotationValue eventAnnotationValue : eventAnnotation
+                                                                .getValues()) {
+                                                            literalParameters
+                                                                    .add(Const.of(eventAnnotationValue.asString()));
+                                                        }
+
+                                                        Expr eventAnnotationLiteralExpr = eventMatchesBlock.new_(
+                                                                ConstructorDesc.of(
+                                                                        ClassDesc.of(getLiteralClassName(
+                                                                                eventAnnotation.getName())),
+                                                                        literalParameterTypes),
+                                                                literalParameters.toArray(new Expr[0]));
+
+                                                        List<Expr> arrayElements = new ArrayList<>();
+                                                        arrayElements.add(actionAnnotationLiteralVar);
+                                                        arrayElements.add(eventAnnotationLiteralExpr);
+                                                        LocalVar annotationLiteralArrayVar = eventMatchesBlock
+                                                                .localVar("annotationLiteralArray", Annotation[].class,
+                                                                        eventMatchesBlock.newArray(Annotation.class,
+                                                                                arrayElements));
+
+                                                        if (Actions.ALL.equals(action)) {
+                                                            fireEvent(eventMatchesBlock,
+                                                                    gitHubEventHandlerClassName,
+                                                                    thisExpr, gitHubEventExpr,
+                                                                    annotationLiteralArrayVar);
+                                                        } else {
+                                                            eventMatchesBlock.if_(
+                                                                    eventMatchesBlock.invokeVirtual(OBJECT_EQUALS,
+                                                                            Const.of(action), dispatchedActionVar),
+                                                                    actionMatchesBlock -> {
+                                                                        fireEvent(actionMatchesBlock,
+                                                                                gitHubEventHandlerClassName,
+                                                                                thisExpr, gitHubEventExpr,
+                                                                                annotationLiteralArrayVar);
+                                                                    });
+                                                        }
+                                                    }
+                                                });
+                                    }
+                                });
                     }
 
-                    ResultHandle eventAnnotationLiteralRh = eventMatchesCreator.newInstance(MethodDescriptor
-                            .ofConstructor(getLiteralClassName(eventAnnotation.getName()), (Object[]) literalParameterTypes),
-                            literalParameters.toArray(ResultHandle[]::new));
-                    ResultHandle annotationLiteralArrayRh = eventMatchesCreator.newArray(Annotation.class, 2);
-                    eventMatchesCreator.writeArrayValue(annotationLiteralArrayRh, 0, actionAnnotationLiteralRh);
-                    eventMatchesCreator.writeArrayValue(annotationLiteralArrayRh, 1, eventAnnotationLiteralRh);
-
-                    if (Actions.ALL.equals(action)) {
-                        fireEvent(eventMatchesCreator, gitHubEventHandlerClassCreator.getClassName(),
-                                gitHubEventRh, annotationLiteralArrayRh);
-                    } else {
-                        BytecodeCreator actionMatchesCreator = eventMatchesCreator
-                                .ifTrue(eventMatchesCreator.invokeVirtualMethod(MethodDescriptors.OBJECT_EQUALS,
-                                        eventMatchesCreator.load(action), dispatchedActionRh))
-                                .trueBranch();
-
-                        fireEvent(actionMatchesCreator, gitHubEventHandlerClassCreator.getClassName(),
-                                gitHubEventRh, annotationLiteralArrayRh);
-                    }
-                }
-            }
-        }
-
-        handleMethodCreator.returnValue(null);
-
-        gitHubEventHandlerClassCreator.close();
+                    b0.return_();
+                });
+            });
+        });
     }
 
     /**
@@ -535,6 +577,7 @@ class GitHubActionProcessor {
      * </ul>
      */
     private static void generateMultiplexers(ClassOutput beanClassOutput,
+            IndexView index,
             DispatchingConfiguration dispatchingConfiguration,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
         for (Entry<DotName, TreeSet<ActionDispatchingMethod>> actionDispatchingMethodsEntry : dispatchingConfiguration
@@ -550,263 +593,322 @@ class GitHubActionProcessor {
             reflectiveClasses.produce(ReflectiveClassBuildItem.builder(multiplexerClassName)
                     .constructors().methods().fields().build());
 
-            ClassCreator multiplexerClassCreator = ClassCreator.builder().classOutput(beanClassOutput)
-                    .className(multiplexerClassName)
-                    .superClass(declaringClassName.toString())
-                    .build();
+            Gizmo gizmo = Gizmo.create(beanClassOutput).withDebugInfo(false).withParameters(false);
 
-            multiplexerClassCreator.addAnnotation(Multiplexer.class);
+            gizmo.class_(multiplexerClassName, cc -> {
+                cc.extends_(classDescOf(declaringClassName));
+                cc.addAnnotation(Multiplexer.class);
 
-            if (!BuiltinScope.isDeclaredOn(declaringClass)) {
-                multiplexerClassCreator.addAnnotation(Singleton.class);
-            }
-
-            for (AnnotationInstance classAnnotation : declaringClass.declaredAnnotations()) {
-                multiplexerClassCreator.addAnnotation(classAnnotation);
-            }
-
-            // Copy the constructors
-            for (MethodInfo originalConstructor : declaringClass.constructors()) {
-                MethodCreator constructorCreator = multiplexerClassCreator.getMethodCreator(MethodDescriptor.ofConstructor(
-                        multiplexerClassName,
-                        originalConstructor.parameterTypes().stream().map(t -> t.name().toString()).toArray(String[]::new)));
-
-                List<AnnotationInstance> originalMethodAnnotations = originalConstructor.annotations().stream()
-                        .filter(ai -> ai.target().kind() == Kind.METHOD).toList();
-                for (AnnotationInstance originalMethodAnnotation : originalMethodAnnotations) {
-                    constructorCreator.addAnnotation(originalMethodAnnotation);
+                if (!BuiltinScope.isDeclaredOn(declaringClass)) {
+                    cc.addAnnotation(Singleton.class);
                 }
 
-                Map<Short, List<AnnotationInstance>> originalConstructorParameterAnnotationMapping = originalConstructor
-                        .annotations().stream()
-                        .filter(ai -> ai.target().kind() == Kind.METHOD_PARAMETER)
-                        .collect(Collectors.groupingBy(ai -> ai.target().asMethodParameter().position()));
-
-                List<ResultHandle> parametersRh = new ArrayList<>();
-                for (short i = 0; i < originalConstructor.parameterTypes().size(); i++) {
-                    parametersRh.add(constructorCreator.getMethodParam(i));
-
-                    AnnotatedElement parameterAnnotations = constructorCreator.getParameterAnnotations(i);
-                    List<AnnotationInstance> originalConstructorParameterAnnotations = originalConstructorParameterAnnotationMapping
-                            .getOrDefault(i, Collections.emptyList());
-                    for (AnnotationInstance originalConstructorParameterAnnotation : originalConstructorParameterAnnotations) {
-                        parameterAnnotations.addAnnotation(originalConstructorParameterAnnotation);
-                    }
+                for (AnnotationInstance classAnnotation : declaringClass.declaredAnnotations()) {
+                    Jandex2Gizmo.addAnnotation(cc, classAnnotation, index);
                 }
 
-                constructorCreator.invokeSpecialMethod(MethodDescriptor.of(originalConstructor), constructorCreator.getThis(),
-                        parametersRh.toArray(ResultHandle[]::new));
-                constructorCreator.returnValue(null);
-            }
+                // Copy the constructors
+                for (MethodInfo originalConstructor : declaringClass.constructors()) {
+                    List<AnnotationInstance> originalMethodAnnotations = originalConstructor.annotations().stream()
+                            .filter(ai -> ai.target().kind() == Kind.METHOD).toList();
+                    Map<Short, List<AnnotationInstance>> originalConstructorParameterAnnotationMapping = originalConstructor
+                            .annotations().stream()
+                            .filter(ai -> ai.target().kind() == Kind.METHOD_PARAMETER)
+                            .collect(Collectors.groupingBy(ai -> ai.target().asMethodParameter().position()));
 
-            // Generate the multiplexed event dispatching methods
-            for (ActionDispatchingMethod actionDispatchingMethod : actionDispatchingMethods) {
-                String name = actionDispatchingMethod.getName();
-                AnnotationInstance eventSubscriberInstance = actionDispatchingMethod.getEventSubscriberInstance();
-                MethodInfo originalMethod = actionDispatchingMethod.getMethod();
-                Map<Short, List<AnnotationInstance>> originalMethodParameterAnnotationMapping = originalMethod.annotations()
-                        .stream()
-                        .filter(ai -> ai.target().kind() == Kind.METHOD_PARAMETER)
-                        .collect(Collectors.groupingBy(ai -> ai.target().asMethodParameter().position()));
-
-                // if the method already has an @Observes or @ObservesAsync annotation
-                if (originalMethod.hasAnnotation(DotNames.OBSERVES) || originalMethod.hasAnnotation(DotNames.OBSERVES_ASYNC)) {
-                    LOG.warn(
-                            "Methods listening to GitHub actions may not be annotated with @Observes or @ObservesAsync. Offending method: "
-                                    + originalMethod.declaringClass().name() + "#" + originalMethod);
-                }
-
-                List<String> parameterTypes = new ArrayList<>();
-                List<Type> originalMethodParameterTypes = originalMethod.parameterTypes();
-
-                // detect the parameter that is a payload
-                short payloadParameterPosition = -1;
-                if (eventSubscriberInstance != null) {
-                    for (short i = 0; i < originalMethodParameterTypes.size(); i++) {
-                        List<AnnotationInstance> parameterAnnotations = originalMethodParameterAnnotationMapping.getOrDefault(i,
-                                Collections.emptyList());
-                        if (parameterAnnotations.stream().anyMatch(ai -> ai.name().equals(eventSubscriberInstance.name()))) {
-                            payloadParameterPosition = i;
-                            break;
+                    cc.constructor(constr -> {
+                        // Add method-level annotations
+                        for (AnnotationInstance originalMethodAnnotation : originalMethodAnnotations) {
+                            Jandex2Gizmo.addAnnotation(constr, originalMethodAnnotation, index);
                         }
-                    }
+
+                        // Create parameters with annotations
+                        List<ParamVar> constructorParamsVar = new ArrayList<>();
+                        for (short i = 0; i < originalConstructor.parameterTypes().size(); i++) {
+                            final short paramIndex = i;
+                            List<AnnotationInstance> originalConstructorParameterAnnotations = originalConstructorParameterAnnotationMapping
+                                    .getOrDefault(paramIndex, Collections.emptyList());
+
+                            ParamVar param = constr.parameter("param" + i, pc -> {
+                                pc.setType(classDescOf(originalConstructor.parameterTypes().get(paramIndex).name()));
+
+                                for (AnnotationInstance originalConstructorParameterAnnotation : originalConstructorParameterAnnotations) {
+                                    Jandex2Gizmo.addAnnotation(pc, originalConstructorParameterAnnotation, index);
+                                }
+                            });
+                            constructorParamsVar.add(param);
+                        }
+
+                        constr.body(bc -> {
+                            bc.invokeSpecial(
+                                    ConstructorDesc.of(classDescOf(originalConstructor.declaringClass().name()),
+                                            originalConstructor.parameterTypes().stream()
+                                                    .map(t -> classDescOf(t.name()))
+                                                    .toArray(ClassDesc[]::new)),
+                                    cc.this_(),
+                                    constructorParamsVar.toArray(new Expr[0]));
+                            bc.return_();
+                        });
+                    });
                 }
 
-                short j = 0;
-                Map<Short, Short> parameterMapping = new HashMap<>();
-                for (short i = 0; i < originalMethodParameterTypes.size(); i++) {
-                    List<AnnotationInstance> originalMethodAnnotations = originalMethodParameterAnnotationMapping
-                            .getOrDefault(i, Collections.emptyList());
-                    if (originalMethodAnnotations.stream().anyMatch(ai -> CONFIG_FILE.equals(ai.name())) ||
-                            INJECTABLE_TYPES.contains(originalMethodParameterTypes.get(i).name()) ||
-                            i == payloadParameterPosition) {
-                        // if the parameter is annotated with @ConfigFile, is of an injectable type or is the payload, we skip it
-                        continue;
-                    }
+                // Generate the multiplexed event dispatching methods
+                for (ActionDispatchingMethod actionDispatchingMethod : actionDispatchingMethods) {
+                    String name = actionDispatchingMethod.getName();
+                    AnnotationInstance eventSubscriberInstance = actionDispatchingMethod.getEventSubscriberInstance();
+                    MethodInfo originalMethod = actionDispatchingMethod.getMethod();
+                    Map<Short, List<AnnotationInstance>> originalMethodParameterAnnotationMapping = originalMethod.annotations()
+                            .stream()
+                            .filter(ai -> ai.target().kind() == Kind.METHOD_PARAMETER)
+                            .collect(Collectors.groupingBy(ai -> ai.target().asMethodParameter().position()));
 
-                    parameterTypes.add(originalMethodParameterTypes.get(i).name().toString());
-                    parameterMapping.put(i, j);
-                    j++;
-                }
-                int configFileReaderParameterPosition = -1;
-                if (originalMethod.hasAnnotation(CONFIG_FILE)) {
-                    parameterTypes.add(ConfigFileReader.class.getName());
-                    configFileReaderParameterPosition = j;
-                    j++;
-                }
-                parameterTypes.add(GitHubEvent.class.getName());
-                int gitHubEventParameterPosition = j;
-
-                MethodCreator methodCreator = multiplexerClassCreator.getMethodCreator(
-                        originalMethod.name() + "_"
-                                + HashUtil.sha1(originalMethod + "_" + (eventSubscriberInstance != null
-                                        ? eventSubscriberInstance.toString()
-                                        : EventDefinition.ALL)),
-                        originalMethod.returnType().name().toString(),
-                        parameterTypes.toArray());
-
-                for (Type exceptionType : originalMethod.exceptions()) {
-                    methodCreator.addException(exceptionType.name().toString());
-                }
-
-                ResultHandle[] parameterValues = new ResultHandle[originalMethod.parameterTypes().size()];
-
-                // copy annotations except for @ConfigFile
-                for (short i = 0; i < originalMethodParameterTypes.size(); i++) {
-                    List<AnnotationInstance> parameterAnnotations = originalMethodParameterAnnotationMapping.getOrDefault(i,
-                            Collections.emptyList());
-                    if (parameterAnnotations.isEmpty()) {
-                        continue;
-                    }
-
-                    // Elements that are not in the mapping are ignored
-                    Short generatedParameterIndex = parameterMapping.get(i);
-                    if (generatedParameterIndex == null) {
-                        continue;
+                    // if the method already has an @Observes or @ObservesAsync annotation
+                    if (originalMethod.hasAnnotation(DotNames.OBSERVES)
+                            || originalMethod.hasAnnotation(DotNames.OBSERVES_ASYNC)) {
+                        LOG.warn(
+                                "Methods listening to GitHub actions may not be annotated with @Observes or @ObservesAsync. Offending method: "
+                                        + originalMethod.declaringClass().name() + "#" + originalMethod);
                     }
 
-                    AnnotatedElement generatedParameterAnnotations = methodCreator
-                            .getParameterAnnotations(generatedParameterIndex);
-                    for (AnnotationInstance annotationInstance : parameterAnnotations) {
-                        generatedParameterAnnotations.addAnnotation(annotationInstance);
-                    }
-                }
+                    List<ClassDesc> parameterTypes = new ArrayList<>();
+                    List<Type> originalMethodParameterTypes = originalMethod.parameterTypes();
 
-                // add annotations to the GitHubEvent parameter
-                AnnotatedElement gitHubEventParameterAnnotations = methodCreator
-                        .getParameterAnnotations(gitHubEventParameterPosition);
-                gitHubEventParameterAnnotations.addAnnotation(DotNames.OBSERVES.toString());
-                gitHubEventParameterAnnotations.addAnnotation(Action.class).addValue("value", name);
-                if (eventSubscriberInstance != null) {
-                    gitHubEventParameterAnnotations.addAnnotation(eventSubscriberInstance);
-                }
-
-                ResultHandle gitHubEventRh = methodCreator.getMethodParam(gitHubEventParameterPosition);
-
-                // generate the code of the method
-                for (short originalMethodParameterIndex = 0; originalMethodParameterIndex < originalMethodParameterTypes
-                        .size(); originalMethodParameterIndex++) {
-                    List<AnnotationInstance> parameterAnnotations = originalMethodParameterAnnotationMapping.getOrDefault(
-                            originalMethodParameterIndex,
-                            Collections.emptyList());
-                    Short multiplexerMethodParameterIndex = parameterMapping.get(originalMethodParameterIndex);
-                    if (originalMethodParameterIndex == payloadParameterPosition) {
-                        parameterValues[originalMethodParameterIndex] = methodCreator.invokeVirtualMethod(
-                                MethodDescriptor.ofMethod(GitHubEvent.class, "getPayload", GHEventPayload.class),
-                                gitHubEventRh);
-                    } else if (INJECTABLE_TYPES
-                            .contains(originalMethodParameterTypes.get(originalMethodParameterIndex).name())) {
-                        DotName injectableType = originalMethodParameterTypes.get(originalMethodParameterIndex).name();
-                        parameterValues[originalMethodParameterIndex] = methodCreator.invokeVirtualMethod(
-                                MethodDescriptor.ofMethod(GitHubEvent.class, "get" + injectableType.withoutPackagePrefix(),
-                                        injectableType.toString()),
-                                gitHubEventRh);
-                    } else if (parameterAnnotations.stream().anyMatch(ai -> ai.name().equals(CONFIG_FILE))) {
-                        AnnotationInstance configFileAnnotationInstance = parameterAnnotations.stream()
-                                .filter(ai -> ai.name().equals(CONFIG_FILE))
-                                .findFirst()
-                                .orElseThrow(() -> new AssertionError("ConfigFile annotation not present"));
-                        String configObjectType = originalMethodParameterTypes.get(originalMethodParameterIndex).name()
-                                .toString();
-
-                        boolean isOptional = false;
-                        if (Optional.class.getName().equals(configObjectType)) {
-                            if (originalMethodParameterTypes.get(originalMethodParameterIndex)
-                                    .kind() != Type.Kind.PARAMETERIZED_TYPE) {
-                                throw new IllegalStateException("Optional is used but not parameterized for method " +
-                                        originalMethod.declaringClass().name() + "#" + originalMethod);
+                    // detect the parameter that is a payload
+                    short payloadParameterPosition = -1;
+                    if (eventSubscriberInstance != null) {
+                        for (short i = 0; i < originalMethodParameterTypes.size(); i++) {
+                            List<AnnotationInstance> parameterAnnotations = originalMethodParameterAnnotationMapping
+                                    .getOrDefault(i,
+                                            Collections.emptyList());
+                            if (parameterAnnotations.stream()
+                                    .anyMatch(ai -> ai.name().equals(eventSubscriberInstance.name()))) {
+                                payloadParameterPosition = i;
+                                break;
                             }
-                            isOptional = true;
-                            configObjectType = originalMethodParameterTypes.get(originalMethodParameterIndex)
-                                    .asParameterizedType().arguments().get(0)
-                                    .name().toString();
                         }
-
-                        ResultHandle gitHubRh = methodCreator.invokeVirtualMethod(MethodDescriptor
-                                .ofMethod(GitHubEvent.class, "getGitHub", GitHub.class),
-                                gitHubEventRh);
-                        ResultHandle contextRh = methodCreator.invokeVirtualMethod(MethodDescriptor
-                                .ofMethod(GitHubEvent.class, "getContext", Context.class),
-                                gitHubEventRh);
-                        ResultHandle repositoryRh = methodCreator.invokeInterfaceMethod(MethodDescriptor
-                                .ofMethod(Context.class, "getGitHubRepository", String.class),
-                                contextRh);
-
-                        ResultHandle configFileReaderRh = methodCreator.getMethodParam(configFileReaderParameterPosition);
-                        ResultHandle configObject = methodCreator.invokeVirtualMethod(
-                                MethodDescriptor.ofMethod(ConfigFileReader.class, "getConfigObject", Object.class,
-                                        GitHub.class, String.class, String.class, Class.class),
-                                configFileReaderRh,
-                                gitHubRh,
-                                repositoryRh,
-                                methodCreator.load(configFileAnnotationInstance.value().asString()),
-                                methodCreator.loadClass(configObjectType));
-                        configObject = methodCreator.checkCast(configObject, configObjectType);
-
-                        if (isOptional) {
-                            configObject = methodCreator.invokeStaticMethod(
-                                    MethodDescriptor.ofMethod(Optional.class, "ofNullable", Optional.class, Object.class),
-                                    configObject);
-                        }
-
-                        parameterValues[originalMethodParameterIndex] = configObject;
-                    } else {
-                        parameterValues[originalMethodParameterIndex] = methodCreator
-                                .getMethodParam(multiplexerMethodParameterIndex);
                     }
+
+                    short j = 0;
+                    Map<Short, Short> parameterMapping = new HashMap<>();
+                    for (short i = 0; i < originalMethodParameterTypes.size(); i++) {
+                        List<AnnotationInstance> originalMethodAnnotations = originalMethodParameterAnnotationMapping
+                                .getOrDefault(i, Collections.emptyList());
+                        if (originalMethodAnnotations.stream().anyMatch(ai -> CONFIG_FILE.equals(ai.name())) ||
+                                INJECTABLE_TYPES.contains(originalMethodParameterTypes.get(i).name()) ||
+                                i == payloadParameterPosition) {
+                            // if the parameter is annotated with @ConfigFile, is of an injectable type or is the payload, we skip it
+                            continue;
+                        }
+
+                        parameterTypes.add(classDescOf(originalMethodParameterTypes.get(i).name()));
+                        parameterMapping.put(i, j);
+                        j++;
+                    }
+                    int configFileReaderParameterPosition = -1;
+                    if (originalMethod.hasAnnotation(CONFIG_FILE)) {
+                        parameterTypes.add(ClassDesc.of(ConfigFileReader.class.getName()));
+                        configFileReaderParameterPosition = j;
+                        j++;
+                    }
+                    parameterTypes.add(ClassDesc.of(GitHubEvent.class.getName()));
+                    int gitHubEventParameterPosition = j;
+
+                    // Build reverse mapping (generated index -> original index) for annotation copying
+                    Map<Short, Short> reverseParameterMapping = new HashMap<>();
+                    for (Map.Entry<Short, Short> entry : parameterMapping.entrySet()) {
+                        reverseParameterMapping.put(entry.getValue(), entry.getKey());
+                    }
+
+                    final short finalPayloadParameterPosition = payloadParameterPosition;
+                    final int finalConfigFileReaderParameterPosition = configFileReaderParameterPosition;
+                    final int finalGitHubEventParameterPosition = gitHubEventParameterPosition;
+
+                    cc.method(originalMethod.name() + "_"
+                            + HashUtil.sha1(originalMethod + "_" + (eventSubscriberInstance != null
+                                    ? eventSubscriberInstance.toString()
+                                    : EventDefinition.ALL)),
+                            mc -> {
+                                mc.returning(classDescOf(originalMethod.returnType().name()));
+
+                                for (Type exceptionType : originalMethod.exceptions()) {
+                                    mc.throws_(classDescOf(exceptionType.name()));
+                                }
+
+                                // Create parameters with annotations
+                                List<ParamVar> methodParams = new ArrayList<>();
+                                for (int paramIdx = 0; paramIdx < parameterTypes.size(); paramIdx++) {
+                                    final int idx = paramIdx;
+
+                                    if (idx == finalGitHubEventParameterPosition) {
+                                        // GitHubEvent parameter with @Observes, @Action, and event subscriber annotations
+                                        ParamVar param = mc.parameter("gitHubEvent", pc -> {
+                                            pc.setType(GitHubEvent.class);
+                                            pc.addAnnotation(ClassDesc.of(DotNames.OBSERVES.toString()),
+                                                    RetentionPolicy.RUNTIME, ab -> {
+                                                    });
+                                            pc.addAnnotation(Action.class, ab -> {
+                                                ab.add("value", name);
+                                            });
+                                            if (eventSubscriberInstance != null) {
+                                                Jandex2Gizmo.addAnnotation(pc, eventSubscriberInstance, index);
+                                            }
+                                        });
+                                        methodParams.add(param);
+                                    } else if (idx == finalConfigFileReaderParameterPosition) {
+                                        // ConfigFileReader parameter (no special annotations)
+                                        methodParams.add(mc.parameter("configFileReader", ConfigFileReader.class));
+                                    } else {
+                                        // Mapped parameter from original method - copy annotations
+                                        Short origIdx = reverseParameterMapping.get((short) idx);
+                                        ParamVar param = mc.parameter("param" + idx, pc -> {
+                                            pc.setType(parameterTypes.get(idx));
+                                            if (origIdx != null) {
+                                                List<AnnotationInstance> paramAnnotations = originalMethodParameterAnnotationMapping
+                                                        .getOrDefault(origIdx, Collections.emptyList());
+                                                for (AnnotationInstance annotationInstance : paramAnnotations) {
+                                                    Jandex2Gizmo.addAnnotation(pc, annotationInstance, index);
+                                                }
+                                            }
+                                        });
+                                        methodParams.add(param);
+                                    }
+                                }
+
+                                mc.body(b0 -> {
+                                    Expr thisExpr = mc.this_();
+                                    Expr gitHubEventExpr = methodParams.get(finalGitHubEventParameterPosition);
+
+                                    // generate the code of the method
+                                    Expr[] parameterValues = new Expr[originalMethod.parameterTypes().size()];
+                                    for (short originalMethodParameterIndex = 0; originalMethodParameterIndex < originalMethodParameterTypes
+                                            .size(); originalMethodParameterIndex++) {
+                                        List<AnnotationInstance> parameterAnnotations = originalMethodParameterAnnotationMapping
+                                                .getOrDefault(
+                                                        originalMethodParameterIndex,
+                                                        Collections.emptyList());
+                                        Short multiplexerMethodParameterIndex = parameterMapping
+                                                .get(originalMethodParameterIndex);
+                                        if (originalMethodParameterIndex == finalPayloadParameterPosition) {
+                                            parameterValues[originalMethodParameterIndex] = b0.cast(
+                                                    b0.invokeVirtual(
+                                                            MethodDesc.of(GitHubEvent.class, "getPayload",
+                                                                    GHEventPayload.class),
+                                                            gitHubEventExpr),
+                                                    classDescOf(originalMethodParameterTypes
+                                                            .get(originalMethodParameterIndex).name()));
+                                        } else if (INJECTABLE_TYPES
+                                                .contains(originalMethodParameterTypes.get(originalMethodParameterIndex)
+                                                        .name())) {
+                                            DotName injectableType = originalMethodParameterTypes
+                                                    .get(originalMethodParameterIndex).name();
+                                            parameterValues[originalMethodParameterIndex] = b0.invokeVirtual(
+                                                    MethodDesc.of(GitHubEvent.class,
+                                                            "get" + injectableType.withoutPackagePrefix(),
+                                                            java.lang.constant.MethodTypeDesc.of(
+                                                                    classDescOf(injectableType))),
+                                                    gitHubEventExpr);
+                                        } else if (parameterAnnotations.stream()
+                                                .anyMatch(ai -> ai.name().equals(CONFIG_FILE))) {
+                                            AnnotationInstance configFileAnnotationInstance = parameterAnnotations.stream()
+                                                    .filter(ai -> ai.name().equals(CONFIG_FILE))
+                                                    .findFirst()
+                                                    .orElseThrow(
+                                                            () -> new AssertionError("ConfigFile annotation not present"));
+                                            String configObjectType = originalMethodParameterTypes
+                                                    .get(originalMethodParameterIndex).name()
+                                                    .toString();
+
+                                            boolean isOptional = false;
+                                            if (Optional.class.getName().equals(configObjectType)) {
+                                                if (originalMethodParameterTypes.get(originalMethodParameterIndex)
+                                                        .kind() != Type.Kind.PARAMETERIZED_TYPE) {
+                                                    throw new IllegalStateException(
+                                                            "Optional is used but not parameterized for method " +
+                                                                    originalMethod.declaringClass().name() + "#"
+                                                                    + originalMethod);
+                                                }
+                                                isOptional = true;
+                                                configObjectType = originalMethodParameterTypes
+                                                        .get(originalMethodParameterIndex)
+                                                        .asParameterizedType().arguments().get(0)
+                                                        .name().toString();
+                                            }
+
+                                            Expr gitHubExpr = b0.invokeVirtual(MethodDesc
+                                                    .of(GitHubEvent.class, "getGitHub", GitHub.class),
+                                                    gitHubEventExpr);
+                                            Expr contextExpr = b0.invokeVirtual(MethodDesc
+                                                    .of(GitHubEvent.class, "getContext", Context.class),
+                                                    gitHubEventExpr);
+                                            Expr repositoryExpr = b0.invokeInterface(MethodDesc
+                                                    .of(Context.class, "getGitHubRepository", String.class),
+                                                    contextExpr);
+
+                                            Expr configFileReaderExpr = methodParams
+                                                    .get(finalConfigFileReaderParameterPosition);
+                                            Expr configObjectExpr = b0.invokeVirtual(
+                                                    MethodDesc.of(ConfigFileReader.class, "getConfigObject",
+                                                            Object.class,
+                                                            GitHub.class, String.class, String.class, Class.class),
+                                                    configFileReaderExpr,
+                                                    gitHubExpr,
+                                                    repositoryExpr,
+                                                    Const.of(configFileAnnotationInstance.value().asString()),
+                                                    Const.of(ClassDesc.of(configObjectType)));
+                                            configObjectExpr = b0.cast(configObjectExpr,
+                                                    ClassDesc.of(configObjectType));
+
+                                            if (isOptional) {
+                                                configObjectExpr = b0.invokeStatic(
+                                                        MethodDesc.of(Optional.class, "ofNullable", Optional.class,
+                                                                Object.class),
+                                                        configObjectExpr);
+                                            }
+
+                                            parameterValues[originalMethodParameterIndex] = configObjectExpr;
+                                        } else {
+                                            parameterValues[originalMethodParameterIndex] = methodParams
+                                                    .get(multiplexerMethodParameterIndex);
+                                        }
+                                    }
+
+                                    // Invoke the original method
+                                    ClassDesc originalMethodOwner = classDescOf(originalMethod.declaringClass().name());
+                                    ClassDesc originalMethodReturnType = classDescOf(originalMethod.returnType().name());
+                                    ClassDesc[] originalMethodParamTypes = originalMethod.parameterTypes().stream()
+                                            .map(t -> classDescOf(t.name()))
+                                            .toArray(ClassDesc[]::new);
+                                    java.lang.constant.MethodTypeDesc originalMethodTypeDesc = java.lang.constant.MethodTypeDesc
+                                            .of(originalMethodReturnType, originalMethodParamTypes);
+                                    MethodDesc originalMethodDesc = io.quarkus.gizmo2.desc.ClassMethodDesc.of(
+                                            originalMethodOwner,
+                                            originalMethod.name(),
+                                            originalMethodTypeDesc);
+                                    Expr returnValue = b0.invokeVirtual(originalMethodDesc, thisExpr, parameterValues);
+
+                                    if (originalMethod.returnType().kind() == Type.Kind.VOID) {
+                                        b0.return_();
+                                    } else {
+                                        b0.return_(returnValue);
+                                    }
+                                });
+                            });
                 }
-
-                ResultHandle returnValue = methodCreator.invokeVirtualMethod(originalMethod, methodCreator.getThis(),
-                        parameterValues);
-                methodCreator.returnValue(returnValue);
-            }
-
-            multiplexerClassCreator.close();
+            });
         }
-
     }
 
-    private static void fireEvent(BytecodeCreator bytecodeCreator, String className,
-            ResultHandle gitHubEventRh, ResultHandle annotationLiteralArrayRh) {
-        ResultHandle cdiEventRh = bytecodeCreator.invokeInterfaceMethod(EVENT_SELECT,
-                bytecodeCreator.readInstanceField(
-                        FieldDescriptor.of(className, EVENT_EMITTER_FIELD, Event.class),
-                        bytecodeCreator.getThis()),
-                annotationLiteralArrayRh);
+    private static void fireEvent(BlockCreator bc, String className,
+            Expr thisExpr, Expr gitHubEventExpr, Expr annotationLiteralArrayExpr) {
+        Expr cdiEventExpr = bc.invokeInterface(EVENT_SELECT,
+                thisExpr.field(FieldDesc.of(ClassDesc.of(className), EVENT_EMITTER_FIELD, Event.class)),
+                annotationLiteralArrayExpr);
 
-        bytecodeCreator.invokeInterfaceMethod(EVENT_FIRE, cdiEventRh, gitHubEventRh);
+        bc.invokeInterface(EVENT_FIRE, cdiEventExpr, gitHubEventExpr);
     }
 
     private static String getLiteralClassName(DotName annotationName) {
         return annotationName + "_AnnotationLiteral";
-    }
-
-    @SuppressWarnings("unused")
-    private static void systemOutPrintln(BytecodeCreator bytecodeCreator, ResultHandle resultHandle) {
-        bytecodeCreator.invokeVirtualMethod(MethodDescriptor.ofMethod(PrintStream.class, "println", void.class, String.class),
-                bytecodeCreator.readStaticField(FieldDescriptor.of(System.class, "out", PrintStream.class)),
-                bytecodeCreator.invokeVirtualMethod(MethodDescriptor.ofMethod(Object.class, "toString", String.class),
-                        resultHandle));
     }
 
     private static class RemoveBridgeMethodsClassVisitor extends ClassVisitor {
@@ -817,7 +919,7 @@ class GitHubActionProcessor {
         private final Set<String> methodsWithBridges;
 
         public RemoveBridgeMethodsClassVisitor(ClassVisitor visitor, String className, Set<String> methodsWithBridges) {
-            super(Gizmo.ASM_API_VERSION, visitor);
+            super(Opcodes.ASM9, visitor);
 
             this.className = className;
             this.methodsWithBridges = methodsWithBridges;
