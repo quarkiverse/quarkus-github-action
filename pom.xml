@@ -15,6 +15,7 @@
         <module>deployment</module>
         <module>runtime</module>
         <module>testing</module>
+        <module>docs-rag</module>
     </modules>
     <properties>
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
