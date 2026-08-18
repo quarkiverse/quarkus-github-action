@@ -16,22 +16,11 @@ runs:
       run: |
         if [ -f ~/.m2/settings.xml ]; then
           if ! grep -q '<id>quarkus-github-action</id>' ~/.m2/settings.xml; then
-            sed -i.bak 's@</servers>@<server><id>quarkus-github-action</id><username>${env.GITHUB_ACTOR}</username><password>${env.GITHUB_TOKEN}</password></server></servers>@' ~/.m2/settings.xml
+            yq -p xml -o xml -i '.settings.servers.server |= (. | [.] + [{"id": "quarkus-github-action", "username": "${env.GITHUB_ACTOR}", "password": "${env.GITHUB_TOKEN}"}])' ~/.m2/settings.xml
           fi
         else
           mkdir -p ~/.m2/
-          cat <<\EOF > ~/.m2/settings.xml
-        <?xml version="1.0"?>
-        <settings>
-          <servers>
-            <server>
-              <id>quarkus-github-action</id>
-              <username>${env.GITHUB_ACTOR}</username>
-              <password>${env.GITHUB_TOKEN}</password>
-            </server>
-          </servers>
-        </settings>
-        EOF
+          yq -p xml -o xml -n '.settings.servers.server = {"id": "quarkus-github-action", "username": "${env.GITHUB_ACTOR}", "password": "${env.GITHUB_TOKEN}"}' > ~/.m2/settings.xml
         fi
     - name: Set up JBang
       uses: jbangdev/setup-jbang@main
