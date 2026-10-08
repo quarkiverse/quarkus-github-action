@@ -1,8 +1,8 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <properties>
-        <install-plugin.version>3.1.4</install-plugin.version>
-        <deploy-plugin.version>3.1.4</deploy-plugin.version>
+        <install-plugin.version>3.2.0</install-plugin.version>
+        <deploy-plugin.version>3.2.0</deploy-plugin.version>
     </properties>
     <build>
         <plugins>
@@ -35,7 +35,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.7.3</version>
+                <version>1.8.0</version>
                 <configuration>
                     <pomElements>
                         <description>keep</description>
