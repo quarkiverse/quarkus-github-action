@@ -198,43 +198,44 @@ runs:
       run: |
         if [ -f ~/.m2/settings.xml ]; then
           if ! grep -q '<id>quarkus-github-action</id>' ~/.m2/settings.xml; then
-            sed -i.bak 's@</servers>@<server><id>quarkus-github-action</id><username>${env.GITHUB_ACTOR}</username><password>${env.GITHUB_TOKEN}</password></server></servers>@' ~/.m2/settings.xml
+            yq -p xml -o xml -i '.settings.servers.server |= (. | [.] + [{"id": "quarkus-github-action", "username": "${env.GITHUB_ACTOR}", "password": "${env.GITHUB_TOKEN}"}])' ~/.m2/settings.xml
           fi
         else
           mkdir -p ~/.m2/
-          cat <<\EOF > ~/.m2/settings.xml
-        <?xml version="1.0"?>
-        <settings>
-          <servers>
-            <server>
-              <id>quarkus-github-action</id>
-              <username>${env.GITHUB_ACTOR}</username>
-              <password>${env.GITHUB_TOKEN}</password>
-            </server>
-          </servers>
-        </settings>
-        EOF
+          yq -p xml -o xml -n '.settings.servers.server = {"id": "quarkus-github-action", "username": "${env.GITHUB_ACTOR}", "password": "${env.GITHUB_TOKEN}"}' > ~/.m2/settings.xml
         fi
+    - name: Set up Java 25 <7>
+      uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      with:
+        distribution: temurin
+        java-version: '25'
+        set-default: false
     - name: Set up JBang
-      uses: jbangdev/setup-jbang@main <7>
-    - name: Run the action
+      uses: jbangdev/setup-jbang@main <8>
+    - name: Run the action <9>
       id: action
-      run: jbang --java 21 --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/gsmet/my-github-action/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <8>
+      run: |
+        if [[ -n "${JAVA_HOME_25_X64}" ]]; then
+          echo "Installing ${JAVA_HOME_25_X64} as JDK 25 for JBang"
+          jbang --verbose jdk install java-25 ${JAVA_HOME_25_X64}
+        fi
+        jbang --java 25 --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/my/action-github-repository/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT
       shell: bash
       env:
-        JSON_INPUTS: ${{ toJSON(inputs) }} <9>
-        GITHUB_TOKEN: ${{ inputs.github-token }} <10>
+        JSON_INPUTS: ${{ toJSON(inputs) }} <10>
+        GITHUB_TOKEN: ${{ inputs.github-token }} <11>
 ----
 <1> The name of the action passed at creation.
 <2> The description of the action passed at creation.
 <3> The GitHub token is mandatory if you stick to publishing the action Maven artifact to the GitHub hosted Maven repository.
 <4> The optional action name, used for routing named actions to action methods.
 <5> The action is https://docs.github.com/en/actions/creating-actions/creating-a-composite-action[a composite action] which has a few specificities. You can add additional steps if required.
-<6> Inject the credentials for the `quarkus-github-action` repository in the `~/.m2/settings.xml`, allowing authenticated access to GitHub-hosted Maven repositories.
-<7> Install JBang, which is used to run the jar file.
-<8> Execute the jar file. It is downloaded from the Maven repository of the action GitHub repository. JBang will download a JDK if necessary.
-<9> Inputs are not transmitted to composite actions so we need to push them manually. The action will deserialize the JSON input automatically and make the inputs available.
-<10> The token is required to download the artifact from the GitHub hosted repository and will be used to authenticate the GitHub clients you can inject in your action code.
+<6> Inject the credentials for the `quarkus-github-action` repository in the `~/.m2/settings.xml` using `yq`, allowing authenticated access to GitHub-hosted Maven repositories.
+<7> Set up a JDK using the `setup-java` action. The `set-default: false` option avoids changing the default JDK of the runner. The JDK is then registered in JBang in the next step.
+<8> Install JBang, which is used to run the jar file.
+<9> Register the JDK set up in the previous step in JBang and execute the jar file. It is downloaded from the Maven repository of the action GitHub repository.
+<10> Inputs are not transmitted to composite actions so we need to push them manually. The action will deserialize the JSON input automatically and make the inputs available.
+<11> The token is required to download the artifact from the GitHub hosted repository and will be used to authenticate the GitHub clients you can inject in your action code.
 
 [NOTE]
 ====
@@ -246,20 +247,34 @@ A composite action can be executed on all sorts of hosts, Linux, macOS or Window
 Given it is a composite action, you can add additional steps to the action.
 
 You can also tweak the existing steps of the action.
-For instance, if you want to use a Java version different from the one used by default for executing your code,
-you can adjust the `action` step as follows:
+For instance, if you want to use a different Java version (e.g. Java 21) for executing your code,
+you need to adjust both the `Set up Java` step and the `Run the action` step:
 
 [source,yaml]
 ----
+    - name: Set up Java 21 <1>
+      uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      with:
+        distribution: temurin
+        java-version: '21' <1>
+        set-default: false
+    - name: Set up JBang
+      uses: jbangdev/setup-jbang@main
     - name: Run the action
       id: action
-      run: jbang --java 17 --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/gsmet/my-github-action/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <1>
+      run: |
+        if [[ -n "${JAVA_HOME_21_X64}" ]]; then <2>
+          echo "Installing ${JAVA_HOME_21_X64} as JDK 21 for JBang"
+          jbang --verbose jdk install java-21 ${JAVA_HOME_21_X64} <2>
+        fi
+        jbang --java 21 --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/my/action-github-repository/' --repos 'mavencentral' org.acme:my-github-action:999-SNAPSHOT <2>
       shell: bash
       env:
         JSON_INPUTS: ${{ toJSON(inputs) }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
 ----
-<1> Use `--java 17` instead of `--java 21`.
+<1> Update the `setup-java` step to use the desired Java version.
+<2> Update all references to the Java version in the `Run the action` step: the `JAVA_HOME` environment variable, the `jdk install` command, and the `--java` flag.
 ====
 
 ==== Docker container action alternative
