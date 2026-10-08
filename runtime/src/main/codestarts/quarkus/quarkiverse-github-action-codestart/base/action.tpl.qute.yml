@@ -22,11 +22,22 @@ runs:
           mkdir -p ~/.m2/
           yq -p xml -o xml -n '.settings.servers.server = {"id": "quarkus-github-action", "username": "$\{env.GITHUB_ACTOR}", "password": "$\{env.GITHUB_TOKEN}"}' > ~/.m2/settings.xml
         fi
+    - name: Set up Java {java.version}
+      uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      with:
+        distribution: temurin
+        java-version: '{java.version}'
+        set-default: false
     - name: Set up JBang
       uses: jbangdev/setup-jbang@main
     - name: Run the action
       id: action
-      run: jbang --java {java.version} --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/{github-repository}/' --repos 'mavencentral' {project.group-id}:{project.artifact-id}:{project.version}
+      run: |
+        if [[ -n "$\{JAVA_HOME_{java.version}_X64}" ]]; then
+          echo "Installing $\{JAVA_HOME_{java.version}_X64} as JDK {java.version} for JBang"
+          jbang --verbose jdk install java-{java.version} $\{JAVA_HOME_{java.version}_X64}
+        fi
+        jbang --java {java.version} --fresh --repos 'quarkus-github-action=https://maven.pkg.github.com/{github-repository}/' --repos 'mavencentral' {project.group-id}:{project.artifact-id}:{project.version}
       shell: bash
       env:
         JSON_INPUTS: ${{ toJSON(inputs) }}
