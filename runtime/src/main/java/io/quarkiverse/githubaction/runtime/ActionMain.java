@@ -6,8 +6,6 @@ import jakarta.inject.Inject;
 
 import org.jboss.logging.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.githubaction.Commands;
 import io.quarkiverse.githubaction.CommandsInitializer;
 import io.quarkiverse.githubaction.Context;
@@ -17,6 +15,7 @@ import io.quarkiverse.githubaction.InputsInitializer;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import tools.jackson.databind.json.JsonMapper;
 
 @QuarkusMain
 public class ActionMain implements QuarkusApplication {
@@ -39,7 +38,7 @@ public class ActionMain implements QuarkusApplication {
     GitHubEventHandler gitHubEventHandler;
 
     @Inject
-    ObjectMapper objectMapper;
+    JsonMapper objectMapper;
 
     @Override
     public int run(String... args) throws Exception {

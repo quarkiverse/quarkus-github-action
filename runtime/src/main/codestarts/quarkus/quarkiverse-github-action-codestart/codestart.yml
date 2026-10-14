@@ -15,6 +15,6 @@ language:
     shared-data:
       buildtool:
         cmd:
-          build-ci: -B clean verify -Dquarkus.package.type=uber-jar -Dquarkus.package.add-runner-suffix=false
+          build-ci: -B clean verify -Dquarkus.package.jar.type=uber-jar -Dquarkus.package.jar.add-runner-suffix=false
       readme:
         include-default-content: false
