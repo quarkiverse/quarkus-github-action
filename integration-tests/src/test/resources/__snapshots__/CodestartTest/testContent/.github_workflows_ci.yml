@@ -27,4 +27,4 @@ jobs:
 
       - name: Build
         run: |
-          ./mvnw -B clean verify -Dquarkus.package.type=uber-jar -Dquarkus.package.add-runner-suffix=false
+          ./mvnw -B clean verify -Dquarkus.package.jar.type=uber-jar -Dquarkus.package.jar.add-runner-suffix=false

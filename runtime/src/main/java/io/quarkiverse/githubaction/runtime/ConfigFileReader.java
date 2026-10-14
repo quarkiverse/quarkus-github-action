@@ -11,10 +11,11 @@ import jakarta.inject.Singleton;
 
 import org.kohsuke.github.GitHub;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.githubaction.GitHubFileDownloader;
 import io.quarkiverse.githubaction.runtime.UtilsProducer.Yaml;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 @Singleton
 public class ConfigFileReader {
@@ -31,11 +32,11 @@ public class ConfigFileReader {
     GitHubFileDownloader gitHubFileDownloader;
 
     @Inject
-    ObjectMapper jsonObjectMapper;
+    JsonMapper jsonObjectMapper;
 
     @Inject
     @Yaml
-    ObjectMapper yamlObjectMapper;
+    YAMLMapper yamlObjectMapper;
 
     public Object getConfigObject(GitHub gitHub, String repository, String path, Class<?> type) {
         return readConfigFile(gitHub, repository, getFilePath(path.trim()), type);

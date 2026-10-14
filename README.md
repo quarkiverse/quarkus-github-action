@@ -54,7 +54,10 @@ Focus on your business logic and don't bother about the ceremony.
 
 ## Compatibility
 
-Quarkus GitHub Action 2.x is compatible with Quarkus 3.x.
+| Quarkus GitHub Action | Quarkus | Java |
+| --- | --- | --- |
+| 2.x | 3.x | 17+ |
+| 3.x | 4.x | 21+ |
 
 We recommend using the latest versions of both for the best experience.
 

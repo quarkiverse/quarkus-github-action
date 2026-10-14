@@ -6,11 +6,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkiverse.githubaction.Inputs;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 class InputsImpl implements Inputs {
 
@@ -19,7 +18,7 @@ class InputsImpl implements Inputs {
 
     private final Map<String, String> inputs;
 
-    InputsImpl(ObjectMapper objectMapper) {
+    InputsImpl(JsonMapper objectMapper) {
         String jsonInputs = System.getenv(JSON_INPUTS);
         final Map<String, String> tmpInputs;
 
@@ -29,7 +28,7 @@ class InputsImpl implements Inputs {
             try {
                 tmpInputs = objectMapper.readValue(jsonInputs, new TypeReference<Map<String, String>>() {
                 });
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new IllegalStateException("Unable to parse JSON inputs to a map", e);
             }
         } else {
