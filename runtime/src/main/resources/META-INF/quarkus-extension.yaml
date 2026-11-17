@@ -10,7 +10,7 @@ metadata:
     - ci
   guide: https://quarkiverse.github.io/quarkiverse-docs/quarkus-github-action/dev/index.html
   categories:
-    - "business-automation"
+    - "automation"
   status: "stable"
   codestart:
     name: "quarkiverse-github-action"
